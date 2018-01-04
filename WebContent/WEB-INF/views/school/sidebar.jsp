@@ -17,10 +17,7 @@
 <!--  <li><a href="school/addRoute">Add Route
      </a></li> -->
 <% } %>
-<!--  <li><a href="school/studentRoute">Assign Student Route
-     </a></li> 
-  <li><a href="school/editStudentRoute">Edit Student Route
-     </a></li>     -->     
+   
       
       </ul>
    </li>

@@ -154,7 +154,7 @@
 					<h4 class="modal-title">Send SMS</h4>
 				</div>
 				<div class="modal-body">
-					<p>Do you want to send sms now or later</p>
+					<p>Do you want to send sms now ?</p>
 					<p>
 
 						<a href="javascript:void(0);" data-dismiss="modal"

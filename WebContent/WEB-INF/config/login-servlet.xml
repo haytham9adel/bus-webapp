@@ -26,6 +26,12 @@
 	<mvc:resources mapping="/resources/**" location="/resources/"/>
 	<tx:annotation-driven transaction-manager="hibernateTransactionManager"/>
 	
+	<bean id="messageSource"
+		class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<property name="basename">
+			<value>classpath:resources/messages</value>
+		</property>
+	</bean>
 	
 	<bean id="localeResolver"
 		class="org.springframework.web.servlet.i18n.SessionLocaleResolver">
@@ -121,7 +127,6 @@
 				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
 				<prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
 				<prop key="hibernate.hbm2ddl.auto">${hibernate.hbm2ddl.auto}</prop>	
-							
 			</props>
 		</property>
 	</bean>
@@ -134,7 +139,7 @@
 	<bean id="multipartResolver"
         class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
  
-         <!-- setting maximum upload size -->
+        <!-- setting maximum upload size -->
        <!--  <property name="maxUploadSize" value="100000" /> -->
  
     </bean>
@@ -161,6 +166,7 @@
 </bean>
   
 <mvc:interceptors>
+
 		<!-- <bean class="com.trackingbus.controller.GetNotification" /> -->
 		 <mvc:interceptor>
 			<mvc:mapping path="/admin/*" />
@@ -177,6 +183,10 @@
 		<mvc:interceptor>
 			<mvc:mapping path="/parent/*" />
 			<bean class="com.trackingbus.controller.GetNotification" />
+		</mvc:interceptor>
+		<mvc:interceptor>
+			<mvc:mapping path="/*" />
+			<bean class="com.trackingbus.controller.AllRequestInterceptor" />
 		</mvc:interceptor>
 </mvc:interceptors>
 	

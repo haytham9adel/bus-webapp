@@ -88,18 +88,18 @@ swal(
     $( "#dob" ).datepicker({ dateFormat: 'yy-mm-dd',
     	changeMonth: true,
         changeYear: true,
-        yearRange: "-100:+0",});
+        yearRange: "-100:+0"});
     $( "#licence_expiry" ).datepicker({ dateFormat: 'yy-mm-dd',
     	changeMonth: true,
         changeYear: true,
         minDate:0,
-        yearRange: "-0:+50",});
+        yearRange: "-0:+50"});
     
     $( "#insurance_document_expiry" ).datepicker({ dateFormat: 'yy-mm-dd',
     	changeMonth: true,
         changeYear: true,
         minDate:0,
-        yearRange: "-0:+50",});
+        yearRange: "-0:+50"});
     
     $('body').on('click',".d", function(){  
     	//$(this).datepicker('destroy').datepicker({showOn:'focus'}).focus();
@@ -143,23 +143,26 @@ function myFunction() {
              
                   	
                    <div class="form-group">
-                     <label class="col-sm-3 control-label">First Name <nowiki>*</nowiki>:</label>
+                     <label class="col-sm-3 control-label">First Name (English) <nowiki>*</nowiki>:</label>
                        <div class="col-sm-9">
                        <input type="hidden" name="driver_school_id" value="<%=session.getAttribute("schoolId") %>">
-                         <input type="text" name="driver_fname" value="${driver.driver_fname}" id="driver_fname" class="form-control">
+                         <input type="text" onkeypress="return (event.charCode >= 65 && event.charCode <= 90) || (event.charCode >= 97 && event.charCode <= 122) || (event.charCode >= 48 && event.charCode <= 57)" 
+                          name="driver_fname" value="${driver.driver_fname}" id="driver_fname" class="form-control">
                           <input type="hidden"  name="image_path" id="image_path" value="" class="form-control">
                         </div>
                    </div>
                     <div class="form-group">
-                     <label class="col-sm-3 control-label">Middle Name :</label>
+                     <label class="col-sm-3 control-label">Middle Name (English):</label>
                        <div class="col-sm-9">
-                        <input type="text" value="${driver.middle_name}" name="middle_name" id="middle_name" class="form-control">
+                        <input type="text" onkeypress="return (event.charCode >= 65 && event.charCode <= 90) || (event.charCode >= 97 && event.charCode <= 122) || (event.charCode >= 48 && event.charCode <= 57)"
+                         value="${driver.middle_name}" name="middle_name" id="middle_name" class="form-control">
                        </div>
                    </div>
                      <div class="form-group">
-                     <label class="col-sm-3 control-label">Last Name <nowiki>*</nowiki>:</label>
+                     <label class="col-sm-3 control-label">Last Name (English) <nowiki>*</nowiki>:</label>
                        <div class="col-sm-9">
-                        <input type="text" value="${driver.driver_lname}" name="driver_lname" id="driver_lname" class="form-control">
+                        <input type="text" onkeypress="return (event.charCode >= 65 && event.charCode <= 90) || (event.charCode >= 97 && event.charCode <= 122) || (event.charCode >= 48 && event.charCode <= 57)"
+                         value="${driver.driver_lname}" name="driver_lname" id="driver_lname" class="form-control">
                        </div>
                    </div>
                    <!-- <div class="form-group">
@@ -217,6 +220,7 @@ function myFunction() {
 						<label class="col-sm-3 control-label">Blood Type :</label>
 						<div class="col-sm-9">
 							<select class="form-control" name="blood_group" id="blood_group">
+							   <option value="NA"> </option>
 								<option value="A+">A+</option>
 								<option value="A-">A-</option>
 								<option value="B+">B+</option>
@@ -287,7 +291,7 @@ function myFunction() {
 					<div class="form-group">
 						<label class="col-sm-4 control-label">Expiry Date :</label>
 						<div class="col-sm-8">
-							<input type="text" name="insurance_document_expiry[0]"
+							<input type="text" name="insurance_document_expiry[0]" onchange="getDateDiff(0);" 
 								value="${vechileBean.insurance_document_expiry}" id="insurance_end_date0"
 								class="form-control d">
 						</div>
@@ -404,6 +408,8 @@ function myFunction() {
 						email: true
 					}, */
 					contact_number: "required",
+					 dob:"required",
+					 licence_expiry :"required",
           },
           messages: {
         	  driver_fname: "Please enter first name",
@@ -416,14 +422,18 @@ function myFunction() {
 			          	},
 		     contact_number: "Please enter contact number",
 			 address:"Please enter address",
+			 dob:"Please enter birth date ",
+			 licence_expiry:"Please enter License Expiry Date ",
+
 			  },
           submitHandler: function(form) {
+             
         	  var check_route_input=$("#check_route_input").val();
         	  if(parseInt(check_route_input)==1)
         		  {
         		  	return false;
         		  }
-        	  else
+        	         	  else
         		  {
         		  	form.submit();
         		  }
@@ -922,7 +932,7 @@ longiArr.push(sourceDesti.dlng);
 												y++;
 												$(wrapper)
 														.append(
-																'<div class="panel section_repeat" id=""><span class="col-sm-12"><a href="#" style="float:right;padding:0 14px 8px 0;color:red;" class="remove_field ">X</a></span><div class="form-group"><label class="col-sm-4 control-label">Document Name :</label><div class="col-sm-8"><input type="text" name="insurance_document_name['+y+']"	value="${vechileBean.insurance_document_name}" id="insurance_end_date" class="form-control"></div></div><div class="form-group"><label class="col-sm-4 control-label">Expiry Date :</label><div class="col-sm-8"><input type="text" name="insurance_document_expiry['+y+']" value="${vechileBean.insurance_document_expiry}" id="insurance_end_date'+y+'"	class="form-control d"></div></div><div class="form-group"><label class="col-sm-4 control-label">Remind Date :</label><div class="col-sm-8"><input type="text" onchange=getDateDiff('+y+') name="insurance_end_date['+y+']" value="${vechileBean.insurance_end_date}" id="insurance_end_date_e'+y+'"	class="form-control d"></div></div><div class="form-group"><label class="col-sm-4 control-label">Remind before days :</label><div class="col-sm-8"><input type="text" name="remind_day['+y+']"	value="${vechileBean.remind_day}" id="remind_day'+y+'"	class="form-control"></div></div><div class="form-group"><label class="col-sm-4 control-label"> Document copy :</label><div class="col-sm-8"><input type="file" name="insurance_card_copy['+y+']" value="" id="insurance_card_copy" class=""></div></div></div><script>'+$("#insurance_end_date"+y).datepicker()+$("#insurance_end_date_e"+y).datepicker()); //add input box
+																'<div class="panel section_repeat" id=""><span class="col-sm-12"><a href="#" style="float:right;padding:0 14px 8px 0;color:red;" class="remove_field ">X</a></span><div class="form-group"><label class="col-sm-4 control-label">Document Name :</label><div class="col-sm-8"><input type="text" name="insurance_document_name['+y+']"	value="${vechileBean.insurance_document_name}" id="insurance_end_date" class="form-control"></div></div><div class="form-group"><label class="col-sm-4 control-label">Expiry Date :</label><div class="col-sm-8"><input type="text" onchange="getDateDiff('+y+')" name="insurance_document_expiry['+y+']" value="${vechileBean.insurance_document_expiry}" id="insurance_end_date'+y+'"	class="form-control d"></div></div><div class="form-group"><label class="col-sm-4 control-label">Remind Date :</label><div class="col-sm-8"><input type="text" onchange=getDateDiff('+y+') name="insurance_end_date['+y+']" value="${vechileBean.insurance_end_date}" id="insurance_end_date_e'+y+'"	class="form-control d"></div></div><div class="form-group"><label class="col-sm-4 control-label">Remind before days :</label><div class="col-sm-8"><input type="text" name="remind_day['+y+']"	value="${vechileBean.remind_day}" id="remind_day'+y+'"	class="form-control"></div></div><div class="form-group"><label class="col-sm-4 control-label"> Document copy :</label><div class="col-sm-8"><input type="file" name="insurance_card_copy['+y+']" value="" id="insurance_card_copy" class=""></div></div></div><script>'+$("#insurance_end_date"+y).datepicker()+$("#insurance_end_date_e"+y).datepicker()); //add input box
 											}
 										});
 
@@ -939,10 +949,21 @@ function getDateDiff(id)
  
 	var exp_date=$("#insurance_end_date"+id).val();
 	var remind_date=$("#insurance_end_date_e"+id).val();
-	 
+	
+	if(exp_date =="" || remind_date=="" ) {
+		$("#remind_day"+id).val("");
+		return ;
+	}
+	
 	var f_date=parseDate(exp_date);
 	var s_date=parseDate(remind_date);
-	$("#remind_day"+id).val(Math.abs(daydiff(s_date,f_date)));
+	var noofdays = daydiff( f_date , s_date ) ;
+	if(noofdays > 0 )  	$("#remind_day"+id).val(noofdays);
+	else {
+		$("#insurance_end_date_e"+id).val("");
+		$("#remind_day"+id).val("");
+	}
+	
 }
 function parseDate(str) {
 	var mdy = str.split('-');

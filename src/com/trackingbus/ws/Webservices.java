@@ -40,19 +40,21 @@ public class Webservices {
     @PermitAll
     @Path("/login")
     @Produces("text/plain")
-    public String login(@QueryParam("user_email") String user_email,@QueryParam("user_pass") String user_pass){
+    public String login (
+    		@QueryParam("user_email") String user_email ,
+    		@QueryParam("user_pass") String user_pass    ){
+
     	String jsonResult="";
-		
 		try{
+			
 			System.out.println(user_email);
+			
 			LoginModel found=new LoginModel();
 			JSONObject jsonArray=new JSONObject();
 			found=loginservice.login(user_email, user_pass);
 		
 			System.out.println("Here"+found.getUser_pass());
-			if(found!=null && found.getUser_pass().equals(user_pass))
-			{
-				
+			if(found!=null && found.getUser_pass().equals(user_pass)) {
 				if (found.getUser_role()==1) {
 					jsonArray.put("role", "Admin");
 				} else if(found.getUser_role()==2) {
@@ -70,9 +72,6 @@ public class Webservices {
 				jsonArray.put("status", "404");
 			}
 			jsonResult=jsonArray.toString();
-			
-	
-		
 		}catch (Exception e) {
 			e.printStackTrace();
 		}

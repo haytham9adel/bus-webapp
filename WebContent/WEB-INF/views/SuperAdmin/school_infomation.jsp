@@ -283,9 +283,9 @@
 				</div>
 
 
-				<input id="hidLat" name="school_lat" type="hidden"
+				<input id="hidLat" name="school_lat" type="text"
 					value="${schoolModel.school_lat}"> <input id="hidLong"
-					name="school_lng" type="hidden" value="${schoolModel.school_lng}">
+					name="school_lng" type="text" value="${schoolModel.school_lng}">
 			<%-- 	<input id="user_id" name="user_id" type="hidden"
 					value="${schooladmin.user_id}"> --%>
 
@@ -609,8 +609,8 @@
 		function initialize1() {
 			var mapOptions = {
 				center : {
-					lat : 51.5072,
-					lng : 0.1275
+					lat : "${schoolModel.school_lat}" ,
+					lng : "${schoolModel.school_lng}"
 				},
 				zoom : 12,
 				mapTypeControl : false,

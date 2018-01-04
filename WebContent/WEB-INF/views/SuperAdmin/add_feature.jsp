@@ -22,6 +22,12 @@
        <div class="col-sm-12">
        	<input type="text" class="form-control" name="title" id="title">
        </div>
+</div> 
+<div class="form-group">
+     <label class="col-sm-12 control-label"><b>Arabic Title:</label>
+       <div class="col-sm-12">
+       	<input type="text" class="form-control" name="title_ar" id="title_ar">
+       </div>
 </div>   
 <div class="form-group">
 	<label class="col-sm-12 control-label"><b>Slider Image:</b> Min.size(225x196)</label>
@@ -35,6 +41,12 @@
      <label class="col-sm-12 control-label"><b>Content:</b></label>
        <div class="col-sm-12">
        <textarea class="form-control" name="content" id="content"></textarea>
+       </div>
+</div> 
+<div class="form-group">
+     <label class="col-sm-12 control-label"><b>Arabic Content:</b></label>
+       <div class="col-sm-12">
+       <textarea class="form-control" name="content_ar" id="content_ar"></textarea>
        </div>
 </div> 
 <div class="form-group">

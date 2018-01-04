@@ -141,7 +141,18 @@
 
 <c:if test="${!empty success}">
 <script>
-	swal("Success!", "${success}", "success");
+swal({
+	title : "Update Parent ",
+	text : "Success!",
+	type : "success",
+	showCancelButton : false,
+	confirmButtonColor : "#DD6B55",
+	confirmButtonText : "OK",
+	closeOnConfirm : false
+}, function(isConfirm) {
+	if (isConfirm)
+		window.location.href = "school/manageParents";
+});
 </script>
 </c:if>
 <c:if test="${!empty error}">

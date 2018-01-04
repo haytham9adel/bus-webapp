@@ -311,9 +311,9 @@
 						<c:choose>
 							<c:when test="${school_details.school_logo!=''}">
 
-								<img id="" alt="image_path" class="img-responsive"
+								<img id="" alt="image_path" class="img-responsive" 
 									src="<%=Assets.SCHOOL_UPLOAD_PATH %>${school_details.school_logo}"
-									style="width: 200px; height: auto;" />
+									style="width: 200px; height: auto; " />
 
 							</c:when>
 							<c:otherwise>
@@ -359,35 +359,3 @@
 
 			<jsp:include page="sidebar.jsp" />
 			<% }%>
-<script>
-    	<%-- $(document).ready(function(){
-    		$("#lang_switcher").click(function(){
-    			var pathname = window.location.pathname; // Returns path only
-        		var url      = window.location.href;     // Returns full URL
-        	 	var base_url = "<%=Assets.BASE_URL%>";
-				var new_url = url.replace(base_url,'');
-				window.location = "<%=Assets.BASE_URL_AR%>"+new_url;
-			});
-    	}); --%>
-    	
-    	$(document).ready(function(){
-    		$("#lang_switcher").click(function(){
-    			var pathname = window.location.pathname; // Returns path only
-        		var url      = window.location.href;     // Returns full URL
-        	 	var base_url = "<%=Assets.BASE_URL%>";
-				var new_url = url.replace(base_url,'');
-				
-				<%  if (session.getAttribute("new_school_id")==null)
-				{ %>
-				window.location = "<%=Assets.BASE_URL_AR%>admin/langSwitcher?q="+new_url+"&u=<%=session.getAttribute("user_id")%>";
-				<% }else{ %>
-				window.location = "<%=Assets.BASE_URL_AR%>admin/langSwitcher?q="+new_url+"&u=<%=session.getAttribute("user_id")%>&ns=<%=session.getAttribute("new_school_id")%>";
-				<% }%>
-				
-				
-			});
-    	});
-    
-    
-</script>			
-			

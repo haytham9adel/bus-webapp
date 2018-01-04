@@ -5,8 +5,6 @@ import net.glxn.qrgen.image.ImageType;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.math.RandomUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.joda.time.DateTimeConstants;
 import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -15,7 +13,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,11 +25,6 @@ import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -40,7 +32,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -48,17 +39,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.mysql.jdbc.Driver;
 import com.trackingbus.bean.AdminSetupBean;
-import com.trackingbus.bean.AttendanceBean;
 import com.trackingbus.bean.CategoryContactBean;
 import com.trackingbus.bean.CityBean;
 import com.trackingbus.bean.ContactContentBean;
 import com.trackingbus.bean.CountryBean;
-import com.trackingbus.bean.DepartmentBean;
-import com.trackingbus.bean.DriverAttendanceBean;
 import com.trackingbus.bean.DriverBean;
-import com.trackingbus.bean.DriverDocBean;
 import com.trackingbus.bean.DriverTrack;
 import com.trackingbus.bean.EmailTemplateBean;
 import com.trackingbus.bean.FaqBean;
@@ -75,23 +61,18 @@ import com.trackingbus.bean.RouteLatLng;
 import com.trackingbus.bean.SchoolBean;
 import com.trackingbus.bean.SchoolClasses;
 import com.trackingbus.bean.SliderBean;
-import com.trackingbus.bean.StaffBean;
 import com.trackingbus.bean.StudentBean;
 import com.trackingbus.bean.SubscriberBean;
 import com.trackingbus.bean.VechileBean;
-import com.trackingbus.bean.VehicleDocBean;
 import com.trackingbus.bean.relationshipBean;
 import com.trackingbus.model.AdminSetupModel;
-import com.trackingbus.model.AttendanceModel;
 import com.trackingbus.model.CategoryContactModel;
 import com.trackingbus.model.CityModel;
 import com.trackingbus.model.ContactContentModel;
 import com.trackingbus.model.CountryModel;
-import com.trackingbus.model.DepartmentModel;
 import com.trackingbus.model.DriverAttendanceModel;
 import com.trackingbus.model.DriverDocModel;
 import com.trackingbus.model.DriverModel;
-import com.trackingbus.model.DriverTrackModel;
 import com.trackingbus.model.EmailTemplateModel;
 import com.trackingbus.model.FaqModel;
 import com.trackingbus.model.FeaturesModel;
@@ -104,10 +85,8 @@ import com.trackingbus.model.PageModel;
 import com.trackingbus.model.RouteLatLngModel;
 import com.trackingbus.model.RouteModel;
 import com.trackingbus.model.SchoolClassesModel;
-import com.trackingbus.model.SchoolMessage;
 import com.trackingbus.model.SchoolModel;
 import com.trackingbus.model.SliderModel;
-import com.trackingbus.model.StaffModel;
 import com.trackingbus.model.StudentModel;
 import com.trackingbus.model.SubscriberModel;
 import com.trackingbus.model.VehicleDocModel;
@@ -116,13 +95,10 @@ import com.trackingbus.model.relationshipModel;
 import com.trackingbus.service.FrontDashboardService;
 import com.trackingbus.service.LoginService;
 import com.trackingbus.service.SchoolService;
-import com.trackingbus.service.StaffService;
 import com.trackingbus.service.StudentService;
 import com.trackingbus.service.VehicleService;
 
 import resources.Sms_api;
-
-import org.apache.commons.codec.binary.Base64;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -131,9 +107,6 @@ public class SuperAdmin {
 
 	@Autowired
 	private SchoolService schoolservice;
-
-	@Autowired
-	private StaffService staffservice;
 
 	@Autowired
 	private StudentService studentservice;
@@ -152,9 +125,8 @@ public class SuperAdmin {
 			@ModelAttribute("command") SchoolBean schoolbean,
 			BindingResult result, ModelMap model, HttpServletRequest request) {
 		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole")!= "Admin")
-		{
-		 return new ModelAndView("redirect:/login.html");
+		if (session.getAttribute("userRole")!= "Admin") {
+  		     return new ModelAndView("redirect:/login.html") ;
 		}
 		int total_schools = schoolservice.listSchools().size();
 		int total_students = schoolservice.getAllStudent().size();
@@ -165,7 +137,6 @@ public class SuperAdmin {
 		model.put("Heading_box", "Total Schools");
 		session.setAttribute("new_school_id", null);
 		return new ModelAndView("SuperAdmin/adminDashboard");
-
 	}
 
 	@RequestMapping(value = "admin/addSchool", method = RequestMethod.GET)
@@ -180,7 +151,7 @@ public class SuperAdmin {
 		}
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("heading", "Add School");
-		model.put("countries", prepareListofBean(schoolservice.listCountry()));
+		model.put("countries", ControllerHelper.prepareListofBean(schoolservice.listCountry()));
 		return new ModelAndView("SuperAdmin/add_school", model);
 	}
 
@@ -216,19 +187,25 @@ public class SuperAdmin {
 					String part2 = parts[1]; // 034556
 					int rand = RandomUtils.nextInt();
 					imageName = schoolbean.getSchool_name() + rand + ".png";
-					String directory = request.getServletContext().getRealPath(
-							Assets.SCHOOL_UPLOAD_PATH + imageName);
+					String directory = Assets.SCHOOL_UPLOAD_PATH_SYS + imageName ;
 					byte[] imageByteArray = Base64.decodeBase64(part2);
 					// Write a image byte array into file system
 					FileOutputStream imageOutFile = new FileOutputStream(
 							directory);
 					imageOutFile.write(imageByteArray);
 					imageOutFile.close();
+					
+					//TO DO : delete after update app 
+					String directory2 = request.getServletContext().getRealPath(	Assets.SCHOOL_UPLOAD_PATH_SYS_to_del + imageName );
+					FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
+					imageOutFile2.write(imageByteArray);
+					imageOutFile2.close();
+					
 				} else {
 					imageName = "";
 				}
 
-				SchoolModel schoolModal = prepareModel(schoolbean);
+				SchoolModel schoolModal = ControllerHelper.prepareModel(schoolbean);
 				schoolModal.setSchool_address(schoolbean.getSchool_address());
 				schoolModal.setSchool_lat(schoolbean.getSchool_lat());
 				schoolModal.setSchool_lng(schoolbean.getSchool_lng());
@@ -286,6 +263,9 @@ public class SuperAdmin {
 				schooladminmodel.setSms_evening_before(1);
 				schooladminmodel.setInstant_message(0);
 				schooladminmodel.setSms_wrong_route_on(1);
+				
+				schooladminmodel.setChat_sound(0);
+				schooladminmodel.setChat_on(0);
 				schoolservice.addParent(schooladminmodel);
 				model.addAttribute("username", username);
 				model.addAttribute("password", password);
@@ -306,7 +286,7 @@ public class SuperAdmin {
 			e.printStackTrace();
 		}
 		Map<String, Object> modelM = new HashMap<String, Object>();
-		modelM.put("countries", prepareListofBean(schoolservice.listCountry()));
+		modelM.put("countries", ControllerHelper.prepareListofBean(schoolservice.listCountry()));
 		modelM.put("heading", "Add School");
 		return new ModelAndView("SuperAdmin/add_school", modelM);
 
@@ -322,305 +302,12 @@ public class SuperAdmin {
 		 return new ModelAndView("redirect:/login.html");
 		}
 		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
+		model.put("schools", ControllerHelper.prepareListOfSchool(schoolservice.listSchools()));
 		return new ModelAndView("SuperAdmin/all_school", model);
 	}
 
-	/* Method for set school value */
-	private SchoolModel prepareModel(SchoolBean schoolbean) {
-		SchoolModel school = new SchoolModel();
-		// school.setCity(schoolbean.getCity());
-		// school.setContact_number(schoolbean.getContact_number());
-		// school.setCountry(schoolbean.getCountry());
-		// school.setEmail(schoolbean.getEmail());
-		// school.setPrincipal_contact(schoolbean.getPrincipal_contact());
-		// school.setPrincipal_name(schoolbean.getPrincipal_name());
-		school.setS_id(null);
-		school.setSchool_name(schoolbean.getSchool_name());
-		// school.setState(schoolbean.getState());
-		school.setTotal_bus(schoolbean.getTotal_bus());
-		school.setTotal_students(schoolbean.getTotal_students());
-		// school.setZip_code(schoolbean.getZip_code());
-		return school;
-	}
-
-	/* Method for get country list */
-	private List<CountryBean> prepareListofBean(List<CountryModel> country) {
-
-		List<CountryBean> beans = null;
-		if (country != null && !country.isEmpty()) {
-			beans = new ArrayList<CountryBean>();
-			CountryBean bean = null;
-			for (CountryModel countries : country) {
-				bean = new CountryBean();
-				bean.setC_id(countries.getC_id());
-				bean.setC_name(countries.getC_name());
-				bean.setC_code(countries.getC_code());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
-
-	/**
-	 * Method For get all schools
-	 **/
-	private List<SchoolBean> prepareListOfSchool(List<SchoolModel> schools) {
-
-		List<SchoolBean> beans = null;
-		if (schools != null && !schools.isEmpty()) {
-			beans = new ArrayList<SchoolBean>();
-			SchoolBean bean = null;
-			for (SchoolModel school : schools) {
-				bean = new SchoolBean();
-				bean.setEmail(school.getEmail());
-				bean.setPrincipal_name(school.getPrincipal_name());
-				bean.setS_id(school.getS_id());
-				bean.setCity(school.getCity());
-				bean.setCountry(school.getCountry());
-				bean.setState(school.getState());
-				bean.setContact_number(school.getContact_number());
-				bean.setPrincipal_contact(school.getPrincipal_contact());
-				bean.setZip_code(school.getZip_code());
-				bean.setTotal_bus(school.getTotal_bus());
-				bean.setTotal_students(school.getTotal_students());
-				bean.setSchool_name(school.getSchool_name());
-				bean.setSchool_logo(school.getSchool_logo());
-				bean.setSchool_address(school.getSchool_address());
-				bean.setSchool_address_field(school.getSchool_address_field());
-				beans.add(bean);
-			}
-		} else {
-			//System.out.println("empty Result");
-		}
-		return beans;
-
-	}
-
-	/**
-	 * Function for add staff member
-	 * */
-	@RequestMapping(value = "admin/addStaff", method = RequestMethod.GET)
-	public ModelAndView addStaff(
-			@ModelAttribute("command") StaffBean staffbean,
-			BindingResult result, HttpServletRequest request) {
-		HttpSession session = request.getSession();
-		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("departments", getDepartments(staffservice.listDepartment()));
-		model.put("staff", staffbean);
-		model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
-		model.put("heading", "Add Staff Memeber");
-		return new ModelAndView("SuperAdmin/add_staff", model);
-	}
-
-	/* Method for get country list */
-	private List<DepartmentBean> getDepartments(
-			List<DepartmentModel> departments) {
-
-		List<DepartmentBean> beans = null;
-		if (departments != null && !departments.isEmpty()) {
-			beans = new ArrayList<DepartmentBean>();
-			DepartmentBean bean = null;
-			for (DepartmentModel depart : departments) {
-				bean = new DepartmentBean();
-				bean.setDepart_id(depart.getDepart_id());
-				bean.setDepart_name(depart.getDepart_name());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
-
-	/**
-	 * Function for add staff post method
-	 **/
-	@RequestMapping(value = "admin/addStaff", method = RequestMethod.POST)
-	public ModelAndView addStaff(
-			@ModelAttribute("command") StaffBean staffbean,
-			BindingResult result, ModelMap model, HttpServletRequest request) {
-		try {
-
-			StaffModel found = staffservice.checkSchoolName(staffbean
-					.getStaff_email());
-			if (found == null) {
-				String imageName = "";
-				if (staffbean.getImage_path() != "") {
-					String filePath = staffbean.getImage_path();
-					String[] parts = filePath.split("base64,");
-					String part2 = parts[1]; // 034556
-					int rand = RandomUtils.nextInt();
-					System.out.println(rand);
-					imageName = staffbean.getStaff_name() + rand + ".png";
-					String directory = request.getServletContext().getRealPath(
-							Assets.STAFF_UPLOAD_PATH + imageName);
-					byte[] imageByteArray = Base64.decodeBase64(part2);
-					// Write a image byte array into file system
-					FileOutputStream imageOutFile = new FileOutputStream(
-							directory);
-					imageOutFile.write(imageByteArray);
-					imageOutFile.close();
-				} else {
-					imageName = "";
-				}
-
-				StaffModel staffmodel = new StaffModel();
-				staffmodel.setAddress(staffbean.getAddress());
-				staffmodel.setDept_id(staffbean.getDept_id());
-				staffmodel.setEducation(staffbean.getEducation());
-				staffmodel.setImage_path(imageName);
-				staffmodel.setSchool_id(staffbean.getSchool_id());
-				staffmodel.setStaff_contact(staffbean.getStaff_contact());
-				staffmodel.setStaff_email(staffbean.getStaff_email());
-				staffmodel.setStaff_id(null);
-				staffmodel.setStaff_name(staffbean.getStaff_name());
-				staffmodel.setStaff_lname(staffbean.getStaff_lname());
-				staffservice.addStaff(staffmodel);
-				model.addAttribute("success", "Staff Member Added Successfully");
-			} else {
-				model.addAttribute("staff", staffbean);
-				model.addAttribute("error", "This Staff member already exist");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		model.put("departments", getDepartments(staffservice.listDepartment()));
-		model.put("staff", staffbean);
-		model.put("heading", "Add Staff Memeber");
-		return new ModelAndView("SuperAdmin/add_staff", model);
-
-	}
-
-	/**
-	 * Function for manage staff
-	 **/
-	@RequestMapping(value = "admin/manageStaff", method = RequestMethod.GET)
-	public ModelAndView manageStaff(
-			@ModelAttribute("command") StaffBean staffbean,
-			BindingResult result, ModelMap modelH, HttpServletRequest request) {
-		HttpSession session = request.getSession();
-		modelH.addAttribute("heading", "Manage Staff");
-		int school_id = (Integer) session.getAttribute("new_school_id");
-		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("staffs", getStaffList(staffservice.listStaff(school_id)));
-		return new ModelAndView("SuperAdmin/all_staff", model);
-	}
-
-	/* Method for get Staff list */
-	private List<StaffBean> getStaffList(List<StaffModel> staff) {
-
-		List<StaffBean> beans = null;
-		if (staff != null && !staff.isEmpty()) {
-			beans = new ArrayList<StaffBean>();
-			StaffBean bean = null;
-			for (StaffModel st : staff) {
-				SchoolModel schoolmodel = new SchoolModel();
-				schoolmodel = schoolservice.getSchoolById(st.getSchool_id());
-
-				bean = new StaffBean();
-				bean.setSchool_name(schoolmodel.getSchool_name());
-				bean.setAddress(st.getAddress());
-				bean.setDept_id(st.getDept_id());
-				bean.setEducation(st.getEducation());
-				bean.setImage_path(st.getImage_path());
-				bean.setSchool_id(st.getSchool_id());
-				bean.setStaff_contact(st.getStaff_contact());
-				bean.setStaff_email(st.getStaff_email());
-				bean.setStaff_id(st.getStaff_id());
-				bean.setStaff_name(st.getStaff_name());
-				bean.setStaff_lname(st.getStaff_lname());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
-
-	@RequestMapping(value = "admin/deleteStaff", method = RequestMethod.GET)
-	public ModelAndView editEmployee(
-			@ModelAttribute("command") StaffBean staffbean,
-			BindingResult result, ModelMap modelH) {
-
-		staffservice.deleteStaff(staffbean.getStaff_id());
-		modelH.addAttribute("heading", "Manage Staff");
-		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("staffs", getStaffList(staffservice.getAllStaff()));
-		model.put("success", "Staff member deleted successfully");
-		return new ModelAndView("SuperAdmin/all_staff", model);
-
-	}
-	/**
-	 * Function for edit Staff
-	 **/
-	@RequestMapping(value = "admin/editStaff", method = RequestMethod.GET)
-	public ModelAndView editStudent(
-			@ModelAttribute("command") StaffBean staffbean,
-			BindingResult result, HttpServletRequest request) {
-		StaffModel staffmodel = staffservice.getStaffById(staffbean
-				.getStaff_id());
-		Map<String, Object> model = new HashMap<String, Object>();
-		if (staffmodel != null) {
-			model.put("departments",
-					getDepartments(staffservice.listDepartment()));
-			model.put("heading", "Edit Staff");
-			model.put("staff", staffmodel);
-			model.put("schools",
-					prepareListOfSchool(schoolservice.listSchools()));
-			return new ModelAndView("SuperAdmin/edit_staff", model);
-		} else {
-			return new ModelAndView("redirect:manageStaff");
-		}
-
-	}
-
-	/**
-	 * Function for edit Staff
-	 **/
-	@RequestMapping(value = "admin/editStaff", method = RequestMethod.POST)
-	public ModelAndView editStaff(
-			@ModelAttribute("command") StaffBean staffbean,
-			BindingResult result, ModelMap model, HttpServletRequest request) {
-		try {
-			String imageName = "";
-			if (staffbean.getImage_path() != "") {
-
-				String filePath = staffbean.getImage_path();
-				String[] parts = filePath.split("base64,");
-				String part2 = parts[1]; // 034556
-				int rand = RandomUtils.nextInt();
-				imageName = staffbean.getStaff_name() + rand + ".png";
-				String directory = request.getServletContext().getRealPath(
-						Assets.STAFF_UPLOAD_PATH + imageName);
-				byte[] imageByteArray = Base64.decodeBase64(part2);
-				FileOutputStream imageOutFile = new FileOutputStream(directory);
-				imageOutFile.write(imageByteArray);
-				imageOutFile.close();
-			} else {
-				imageName = "";
-			}
-
-			StaffModel staffmodel = new StaffModel();
-			staffmodel.setAddress(staffbean.getAddress());
-			staffmodel.setDept_id(staffbean.getDept_id());
-			staffmodel.setEducation(staffbean.getEducation());
-			staffmodel.setImage_path(imageName);
-			staffmodel.setStaff_contact(staffbean.getStaff_contact());
-			staffmodel.setStaff_email(staffbean.getStaff_email());
-			staffmodel.setStaff_id(staffbean.getStaff_id());
-			staffmodel.setStaff_name(staffbean.getStaff_name());
-			staffmodel.setStaff_lname(staffbean.getStaff_lname());
-			staffservice.editStaffById(staffbean.getStaff_id(), staffmodel);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return new ModelAndView("redirect:manageStaff");
-	}
-
+	
+	
 	@RequestMapping(value = "admin/manageStudents", method = RequestMethod.GET)
 	public ModelAndView manageStudents(
 			@ModelAttribute("command") StudentBean studentbean,
@@ -634,96 +321,13 @@ public class SuperAdmin {
 		Map<String, Object> model = new HashMap<String, Object>();
 		int school_id = (Integer) session.getAttribute("new_school_id");
 		model.put("students",
-				getStudentList(schoolservice.listStudent(school_id)));
+			ControllerHelper.	getStudentList(schoolservice.listStudent(school_id) , schoolservice ) );
 		model.put("school_details", schoolservice.getSchoolById(school_id));
 		// model.put("students", getStudentList(schoolservice.getAllStudent()));
 		return new ModelAndView("SuperAdmin/all_student", model);
 	}
 
-	/* Method for get Student list */
-	private List<StudentBean> getStudentList(List<StudentModel> students) {
-
-		List<StudentBean> beans = null;
-		if (students != null && !students.isEmpty()) {
-			beans = new ArrayList<StudentBean>();
-			StudentBean bean = null;
-			for (StudentModel student : students) {
-				bean = new StudentBean();
-				SchoolModel stud = new SchoolModel();
-				stud = schoolservice.getSchoolById(student.getS_school_id());
-				bean.setStudent_id(student.getStudent_id());
-				bean.setSchool_name(stud.getSchool_name());
-				bean.setS_fname(student.getS_fname());
-				
-				RouteModel rm=schoolservice.getRouteById(student.getS_route_id());
-				if(rm!=null)
-				{
-					bean.setS_lname(rm.getRoute_name());
-				}else
-				{
-					bean.setS_lname("N/A");
-				}
-				bean.setS_email(student.getS_email());
-				bean.setS_address(student.getS_address());
-				bean.setS_contact(student.getS_contact());
-				bean.setS_image_path(student.getS_image_path());
-				bean.setFamily_name(student.getFamily_name());
-				bean.setFather_name(student.getFather_name());
-				bean.setDob(student.getDob());
-				bean.setGender(student.getGender());
-				bean.setGrand_name(student.getGrand_name());
-				bean.setNationality(student.getNationality());
-				bean.setStudent_class(student.getStudent_class());
-				bean.setGender(student.getGender());
-				bean.setBlink_status(student.getBlink_status());
-				bean.setBlood_type(student.getBlood_type());
-				if(student.getP_1()!=null && student.getP_1()!=0)
-				{
-					LoginModel p1=schoolservice.getParentById(student.getP_1());
-					
-					bean.setPp_1(p1.getFirst_name()+" "+p1.getLast_name());
-					bean.setR_1(student.getR_1());
-				}else
-				{
-					bean.setPp_1("N/A");
-					bean.setR_1("N/A");
-				}
-				
-				if(student.getP_2()!=null && student.getP_2()!=0)
-				{
-					LoginModel p2=schoolservice.getParentById(student.getP_2());
-					if(p2!=null){
-						bean.setPp_2(p2.getFirst_name()+" "+p2.getLast_name());
-						bean.setR_2(student.getR_2());
-					}else{
-						bean.setPp_2("N/A");
-						bean.setR_2("N/A");
-					}
-					
-				}else
-				{
-					bean.setPp_2("N/A");
-					bean.setR_2("N/A");
-				}
-				
-				if(student.getP_3()!=null && student.getP_3()!=0)
-				{
-					LoginModel p3=schoolservice.getParentById(student.getP_3());
-					
-					bean.setPp_3(p3.getFirst_name()+" "+p3.getLast_name());
-					bean.setR_3(student.getR_2());
-				}else
-				{
-					bean.setPp_3("N/A");
-					bean.setR_3("N/A");
-				}
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
+	
 
 	@RequestMapping(value = "admin/addStudent", method = RequestMethod.GET)
 	public ModelAndView addStudent(
@@ -731,8 +335,7 @@ public class SuperAdmin {
 			BindingResult result, HttpServletRequest request) {
 		
 		
-		String qr_directory = request.getServletContext().getRealPath(
-				Assets.STUDENT_QR_PATH);
+		String qr_directory =  Assets.STUDENT_QR_PATH_SYS  ;
 		System.out.println(qr_directory);
 		HttpSession session = request.getSession();
 		if (session.getAttribute("userRole")!= "Admin")
@@ -740,18 +343,23 @@ public class SuperAdmin {
 		 return new ModelAndView("redirect:/login.html");
 		}
 		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("countries", prepareListofBean(schoolservice.listCountry()));
-		model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
+		model.put("countries", ControllerHelper. prepareListofBean(schoolservice.listCountry()));
+		model.put("schools", ControllerHelper. prepareListOfSchool(schoolservice.listSchools()));
 		int school_id = (Integer) session.getAttribute("new_school_id");
-		model.put("school_details", schoolservice.getSchoolById(school_id));
+		
+		SchoolModel schol =  schoolservice.getSchoolById(school_id) ;
+
+		model.put("school_details", schol);
 		model.put("heading", "Add Student");
 		model.put("parents",
-				getParentList(studentservice.listParent(school_id)));
-		model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
+				ControllerHelper. getParentList(studentservice.listParent(school_id) ,schoolservice ));
+		model.put("routes", ControllerHelper.getAllRoute(schoolservice.listRoute(school_id)));
 		model.put("heading", "Add Student");
 		model.put("class_info",
-				getAllClassList(schoolservice.getAllSchoolClasses(school_id)));
-		model.put("nationality", prepareNationalityList(schoolservice.getAllNationlity()));
+				ControllerHelper.getAllClassList(schoolservice.getAllSchoolClasses(school_id)));
+		model.put("nationality",ControllerHelper.prepareNationalityList(schoolservice.getAllNationlity()));
+		model.put("country_details", schoolservice.getCountryById(schol.getCountry()));
+
 		return new ModelAndView("SuperAdmin/add_student", model);
 	}
 
@@ -789,8 +397,7 @@ public class SuperAdmin {
 					String part2 = parts[1]; // 034556
 					int rand = RandomUtils.nextInt();
 					imageName = studentbean.getS_contact() + rand + ".png";
-					String directory = request.getServletContext().getRealPath(
-							Assets.STUDENT_UPLOAD_PATH + imageName);
+					String directory = Assets.STUDENT_UPLOAD_PATH + imageName ;
 					System.out.println(directory);
 					byte[] imageByteArray = Base64.decodeBase64(part2);
 					// Write a image byte array into file system
@@ -798,6 +405,13 @@ public class SuperAdmin {
 							directory);
 					imageOutFile.write(imageByteArray);
 					imageOutFile.close();
+					
+					//TO DO : delete after update app 
+					String directory2 = 	request.getServletContext().getRealPath( Assets.STUDENT_UPLOAD_PATH_to_del + imageName ) ;
+					FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
+					imageOutFile2.write(imageByteArray);
+					imageOutFile2.close();
+					
 				} else {
 					imageName = "";
 				}
@@ -893,8 +507,7 @@ public class SuperAdmin {
 				qr_text=""+student_id;
 				ByteArrayOutputStream out = QRCode.from(qr_text)
 						.to(ImageType.PNG).stream();
-				String qr_directory = request.getServletContext().getRealPath(
-						Assets.STUDENT_QR_PATH + "/s_" + student_id + ".png");
+				String qr_directory =  Assets.STUDENT_QR_PATH_SYS + "/s_" + student_id + ".png" ;
 
 				FileOutputStream fout = new FileOutputStream(new File(
 						qr_directory));
@@ -911,7 +524,7 @@ public class SuperAdmin {
 				String s_address = "";
 				System.out.println("LATARR=" + latArr[latArr.length - 1]);
 
-				GoogleResponse res1 = convertFromLatLong(latArr[latArr.length - 1]
+				GoogleResponse res1 = ControllerHelper.convertFromLatLong(latArr[latArr.length - 1]
 						+ "," + lngArr[lngArr.length - 1]);
 				if (res1.getStatus().equals("OK")) {
 					for (Result result2 : res1.getResults()) {
@@ -946,15 +559,15 @@ public class SuperAdmin {
 		Map<String, Object> modelM = new HashMap<String, Object>();
 		int school_id = (Integer) session.getAttribute("new_school_id");
 		model.put("parents",
-				getParentList(studentservice.listParent(school_id)));
-		model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
-		model.put("countries", prepareListofBean(schoolservice.listCountry()));
-		model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
+				ControllerHelper. getParentList(studentservice.listParent(school_id) ,schoolservice ));
+		model.put("routes", ControllerHelper.getAllRoute(schoolservice.listRoute(school_id)));
+		model.put("countries", ControllerHelper.prepareListofBean(schoolservice.listCountry()));
+		model.put("schools", ControllerHelper.prepareListOfSchool(schoolservice.listSchools()));
 		model.put("heading", "Add Student");
 		model.put("school_details", schoolservice.getSchoolById(school_id));
-		model.put("nationality", prepareNationalityList(schoolservice.getAllNationlity()));
+		model.put("nationality",ControllerHelper.prepareNationalityList(schoolservice.getAllNationlity()));
 		model.put("class_info",
-				getAllClassList(schoolservice.getAllSchoolClasses(school_id)));
+				ControllerHelper.getAllClassList(schoolservice.getAllSchoolClasses(school_id)));
 		return new ModelAndView("SuperAdmin/add_student", model);
 
 	}
@@ -980,22 +593,27 @@ public class SuperAdmin {
 			 return new ModelAndView("redirect:/login.html");
 			}
 			int school_id = (Integer) session.getAttribute("new_school_id");
-			model.put("school_details", schoolservice.getSchoolById(school_id));
+			SchoolModel schol =  schoolservice.getSchoolById(school_id) ;
+
+			model.put("school_details", schol);
+			
 			model.put("parents",
-					getParentList(studentservice.listParent(school_id)));
+					ControllerHelper. getParentList(studentservice.listParent(school_id) ,schoolservice ));
 			model.put("heading", "Update Student");
 			model.put("countries",
-					prepareListofBean(schoolservice.listCountry()));
+					ControllerHelper.prepareListofBean(schoolservice.listCountry()));
 			model.put("schools",
-					prepareListOfSchool(schoolservice.listSchools()));
+					ControllerHelper.prepareListOfSchool(schoolservice.listSchools()));
 			model.put("studentBean", studentModel);
-			model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
+			model.put("routes", ControllerHelper.getAllRoute(schoolservice.listRoute(school_id)));
 			RouteLatLngModel latlngmodel = studentservice
 					.getLatLngBySId(student_id);
 			model.put("latlng", latlngmodel);
-			model.put("class_info", getAllClassList(schoolservice
+			model.put("class_info",ControllerHelper.getAllClassList(schoolservice
 					.getAllSchoolClasses(school_id)));
-			model.put("nationality", prepareNationalityList(schoolservice.getAllNationlity()));
+			model.put("nationality",ControllerHelper.prepareNationalityList(schoolservice.getAllNationlity()));
+			model.put("country_details", schoolservice.getCountryById(schol.getCountry()));
+
 			return new ModelAndView("SuperAdmin/edit_student", model);
 		} else {
 			return new ModelAndView("redirect:manageStudents");
@@ -1018,8 +636,7 @@ public class SuperAdmin {
 		System.out.println(student.getS_school_id());
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("parent_id", student.getS_parent_id());
-		model.put("parents", getParents(schoolservice.getParentBySchool(student
-				.getS_school_id())));
+		model.put("parents",ControllerHelper. getParents( schoolservice.getParentBySchool(student.getS_school_id())));
 		return new ModelAndView("SuperAdmin/get_parents", model);
 	}
 
@@ -1048,12 +665,18 @@ public class SuperAdmin {
 				String part2 = parts[1]; // 034556
 				int rand = RandomUtils.nextInt();
 				imageName = studentbean.getS_contact() + "_" + rand + ".png";
-				String directory = request.getServletContext().getRealPath(
-						Assets.STUDENT_UPLOAD_PATH + imageName);
+				String directory = Assets.STUDENT_UPLOAD_PATH + imageName ;
 				byte[] imageByteArray = Base64.decodeBase64(part2);
 				FileOutputStream imageOutFile = new FileOutputStream(directory);
 				imageOutFile.write(imageByteArray);
 				imageOutFile.close();
+				
+				//TO DO : delete after update app 
+				String directory2 = request.getServletContext().getRealPath(	Assets.STUDENT_UPLOAD_PATH_to_del + imageName );
+				FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
+				imageOutFile2.write(imageByteArray);
+				imageOutFile2.close();
+				
 			} else {
 				imageName = "";
 			}
@@ -1073,8 +696,7 @@ public class SuperAdmin {
 					.stream();
 			// String
 			// qr_directory=request.getServletContext().getRealPath(Assets.STUDENT_QR_PATH);
-			String qr_directory = request.getServletContext().getRealPath(
-					Assets.STUDENT_QR_PATH + "/s_" + student_id + ".png");
+			String qr_directory = Assets.STUDENT_QR_PATH_SYS + "/s_" + student_id + ".png" ;
 
 			FileOutputStream fout = new FileOutputStream(new File(qr_directory));
 			fout.write(out.toByteArray());
@@ -1163,7 +785,7 @@ public class SuperAdmin {
 			System.out.println("Status=" + latlng.getCheckStatus());
 			if (latlng.getCheckStatus() == 1) {
 
-				GoogleResponse res1 = convertFromLatLong(latArr[2] + ","
+				GoogleResponse res1 = ControllerHelper.convertFromLatLong(latArr[2] + ","
 						+ lngArr[2]);
 				if (res1.getStatus().equals("OK")) {
 					for (Result result2 : res1.getResults()) {
@@ -1183,7 +805,7 @@ public class SuperAdmin {
 				System.out.println("New=" + latArr[2]);
 			} else {
 
-				GoogleResponse res1 = convertFromLatLong(latArr[1] + ","
+				GoogleResponse res1 = ControllerHelper.convertFromLatLong(latArr[1] + ","
 						+ lngArr[1]);
 				if (res1.getStatus().equals("OK")) {
 					for (Result result2 : res1.getResults()) {
@@ -1237,31 +859,14 @@ public class SuperAdmin {
 		return new ModelAndView("redirect:manageStudents");
 	}
 
-	/* Method for get city list by state */
-	private List<LoginBean> getParents(List<LoginModel> users) {
-
-		List<LoginBean> beans = null;
-		if (users != null && !users.isEmpty()) {
-			beans = new ArrayList<LoginBean>();
-			LoginBean bean = null;
-			for (LoginModel user : users) {
-				bean = new LoginBean();
-				bean.setUser_id(user.getUser_id());
-				bean.setUser_name(user.getUser_name());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
+	
 
 	@RequestMapping(value = "admin/addParent", method = RequestMethod.GET)
 	public ModelAndView addParent(
 			@ModelAttribute("command") SchoolBean schoolbean,
 			BindingResult result, HttpServletRequest request, ModelMap model) {
 		model.addAttribute("heading", "Add Parent");
-		model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
+		model.put("schools",ControllerHelper. prepareListOfSchool(schoolservice.listSchools()));
 		HttpSession session = request.getSession();
 		if (session.getAttribute("userRole")!= "Admin")
 		{
@@ -1279,16 +884,7 @@ public class SuperAdmin {
 	public ModelAndView addParent(@ModelAttribute("command") LoginBean parent,
 			BindingResult result, ModelMap model, HttpServletRequest request) {
 		try {
-			/*
-			 * RandomNumber random=new RandomNumber(9999); String f_name =
-			 * parent.getFirst_name().substring(0, 3); String l_name=
-			 * parent.getLast_name().substring(0, 3); String con_number=
-			 * parent.getContact_number().substring(0, 3);
-			 * 
-			 * String
-			 * username=f_name+"_"+con_number+"_"+random.generateNewRandom
-			 * (50)+"_"+l_name;
-			 */
+			
 
 			RandomNumber random = new RandomNumber(9999);
 			String f_name = parent.getFirst_name().substring(0, 1);
@@ -1391,7 +987,7 @@ public class SuperAdmin {
 				schoolservice.getCountryById(schol.getCountry()));
 
 		model.put("school_details", schoolservice.getSchoolById(school_id));
-		model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
+		model.put("schools", ControllerHelper. prepareListOfSchool(schoolservice.listSchools()));
 		return new ModelAndView("SuperAdmin/add_parent");
 
 	}
@@ -1414,43 +1010,12 @@ public class SuperAdmin {
 		int school_id = (Integer) session.getAttribute("new_school_id");
 		model.put("school_details", schoolservice.getSchoolById(school_id));
 		model.put("parents",
-				getParentList(studentservice.listParent(school_id)));
+				ControllerHelper. getParentList(studentservice.listParent(school_id) ,schoolservice ));
 
 		return new ModelAndView("SuperAdmin/all_parents", model);
 	}
 
-	/* Method for get country list */
-	private List<LoginBean> getParentList(List<LoginModel> users) {
-
-		List<LoginBean> beans = null;
-		if (users != null && !users.isEmpty()) {
-			beans = new ArrayList<LoginBean>();
-			LoginBean bean = null;
-			for (LoginModel user : users) {
-
-				bean = new LoginBean();
-				SchoolModel stud = new SchoolModel();
-				stud = schoolservice.getSchoolById(user.getSchool_id());
-				bean.setUser_id(user.getUser_id());
-				bean.setSchool_name(stud.getSchool_name());
-				bean.setP_status(user.getP_status());
-				bean.setFirst_name(user.getFirst_name());
-				bean.setLast_name(user.getLast_name());
-				bean.setUser_name(user.getUser_name());
-				bean.setUser_email(user.getUser_email());
-				bean.setContact_number(user.getContact_number());
-				bean.setPermission(user.getPermission());
-				bean.setUser_pass(user.getUser_pass());
-				bean.setFamily_name(user.getFamily_name());
-				bean.setMiddle_name(user.getMiddle_name());
-				bean.setMobile_number(user.getMobile_number());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
+	
 
 	@RequestMapping(value = "admin/deleteParent", method = RequestMethod.GET)
 	public ModelAndView editEmployee(
@@ -1468,7 +1033,7 @@ public class SuperAdmin {
 		int school_id = (Integer) session.getAttribute("new_school_id");
 		// model.put("parents", getParentList(studentservice.getAllParents()));
 		model.put("parents",
-				getParentList(studentservice.listParent(school_id)));
+				ControllerHelper. getParentList(studentservice.listParent(school_id) ,schoolservice ));
 		return new ModelAndView("SuperAdmin/all_parents", model);
 	}
 
@@ -1497,7 +1062,7 @@ public class SuperAdmin {
 
 			model.put("heading", "Edit Parent");
 			model.put("schools",
-					prepareListOfSchool(schoolservice.listSchools()));
+					ControllerHelper.prepareListOfSchool(schoolservice.listSchools()));
 			model.put("parent", parent);
 			SchoolModel schol = schoolservice.getSchoolById(school_id);
 			model.put("country_details",
@@ -1546,7 +1111,7 @@ public class SuperAdmin {
 		// return new ModelAndView("redirect:manageParents");
 		LoginModel parent = schoolservice.getParentById(parent_id);
 		model.put("heading", "Edit Parent");
-		model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
+		model.put("schools", ControllerHelper.prepareListOfSchool(schoolservice.listSchools()));
 		model.put("parent", parent);
 		SchoolModel schol = schoolservice.getSchoolById(school_id);
 		model.put("country_details",
@@ -1589,11 +1154,11 @@ public class SuperAdmin {
 			/*
 			 * model.put("city",city); model.put("country", country);
 			 */
-			model.put("routes", getAllRoute(schoolservice.listRoute(student_id)));
+			model.put("routes", ControllerHelper.getAllRoute(schoolservice.listRoute(student_id)));
 			RouteLatLngModel latlngmodel = studentservice
 					.getLatLngBySId(student_id);
-			model.put("allParent", getParentList(schoolservice
-					.getParentByPIdList(studentModel.getP_status_id())));
+			model.put("allParent",ControllerHelper. getParentList(schoolservice
+					.getParentByPIdList(studentModel.getP_status_id()),schoolservice));
 			model.put("latlng", latlngmodel);
 
 			int school_id = (Integer) session.getAttribute("new_school_id");
@@ -1635,14 +1200,14 @@ public class SuperAdmin {
 		int school_id = (Integer) session.getAttribute("new_school_id");
 		model.put("school_details", schoolservice.getSchoolById(school_id));
 		if (parent != null) {
-			model.put("allParent", getParentList(schoolservice
-					.getParentByPIdList(parent.getP_status())));
+			model.put("allParent",ControllerHelper. getParentList(schoolservice
+					.getParentByPIdList(parent.getP_status()),schoolservice));
 			model.put("heading", "View Parent");
 			model.put("parent", parent);
 			// model.put("students",
 			// getStudentList(studentservice.getStudentByParent(parents.getUser_id())));
-			model.put("students", getStudentList(studentservice
-					.getStudentByParentStatus(parent.getP_status())));
+			model.put("students",ControllerHelper. getStudentList(studentservice
+					.getStudentByParentStatus(parent.getP_status()) , schoolservice));
 
 			return new ModelAndView("SuperAdmin/view_parent", model);
 		} else {
@@ -1657,7 +1222,7 @@ public class SuperAdmin {
 	}
 
 	@RequestMapping(value = "admin/deleteStudent", method = RequestMethod.GET)
-	public ModelAndView editEmployee(
+	public ModelAndView deleteStudent(
 			@ModelAttribute("command") StudentBean student,
 			BindingResult result, ModelMap modelH) {
 		schoolservice.deleteStudent(student.getStudent_id());
@@ -1668,7 +1233,7 @@ public class SuperAdmin {
 	 * Function for manage Driver
 	 **/
 	@RequestMapping(value = "admin/manageDrivers", method = RequestMethod.GET)
-	public ModelAndView manageStaff(
+	public ModelAndView manageDrivers(
 			@ModelAttribute("command") DriverBean driverbean,
 			BindingResult result, ModelMap modelH, HttpServletRequest request,HttpServletResponse response) {
 		modelH.addAttribute("heading", "Manage Driver");
@@ -1681,7 +1246,7 @@ public class SuperAdmin {
 		try{
 		int school_id = (Integer) session.getAttribute("new_school_id");
 		model.put("drivers",
-				getDriversList(schoolservice.listDriver(school_id)));
+				ControllerHelper. getDriversList(schoolservice.listDriver(school_id) , schoolservice));
 		model.put("school_details", schoolservice.getSchoolById(school_id));
 		// model.put("drivers", getDriversList(schoolservice.allDrivers()));
 		
@@ -1693,56 +1258,7 @@ public class SuperAdmin {
 		
 	}
 
-	/* Method for get Student list */
-	private List<DriverBean> getDriversList(List<DriverModel> driver) {
-
-		List<DriverBean> beans = null;
-		if (driver != null && !driver.isEmpty()) {
-			beans = new ArrayList<DriverBean>();
-			DriverBean bean = null;
-			for (DriverModel st : driver) {
-				bean = new DriverBean();
-
-				SchoolModel stud = new SchoolModel();
-				stud = schoolservice.getSchoolById(st.getDriver_school_id());
-				bean.setSchool_name(stud.getSchool_name());
-				bean.setAddress(st.getAddress());
-				bean.setContact_number(st.getContact_number());
-				bean.setD_email(st.getD_email());
-				bean.setDriver_fname(st.getDriver_fname());
-				bean.setDriver_id(st.getDriver_id());
-				bean.setDriver_lname(st.getDriver_lname());
-				bean.setDriver_school_id(st.getDriver_school_id());
-				bean.setImage_path(st.getImage_path());
-				bean.setMiddle_name(st.getMiddle_name());
-				bean.setDob(st.getDob());
-				bean.setNationality(st.getNationality());
-				bean.setLicence_expiry(st.getLicence_expiry());
-				bean.setPassword(st.getPassword());
-				bean.setUsername(st.getUsername());
-				bean.setBlood_group(st.getBlood_group());
-				bean.setStatus(1);
-				if(st.getRoute_id()!=null && st.getRoute_id()!=0)
-				{
-					RouteModel route_details=schoolservice.getRouteById(st.getRoute_id());
-					if(route_details!=null)
-					{
-						bean.setRoute_name(route_details.getRoute_name());
-					}else
-					{
-						bean.setRoute_name("N/A");
-					}
-				}else
-				{
-					bean.setRoute_name("N/A");
-				}
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
+	
 
 	/**
 	 * Function for edit student
@@ -1768,15 +1284,15 @@ public class SuperAdmin {
 			model.put("heading", "Edit Driver");
 			model.put("driver", drivermodel);
 			model.put("routes",
-					getAllRoute(schoolservice.listRoute((Integer) session
+					ControllerHelper.getAllRoute(schoolservice.listRoute((Integer) session
 							.getAttribute("new_school_id"))));
 			model.put("schools",
-					prepareListOfSchool(schoolservice.listSchools()));
+					ControllerHelper. prepareListOfSchool(schoolservice.listSchools()));
 			SchoolModel schol = schoolservice.getSchoolById(school_id);
 			model.put("country_details",
 					schoolservice.getCountryById(schol.getCountry()));
-			model.put("documents", prepareListOfDriverDoc(schoolservice.getDriverDocument(driver_id)));
-			model.put("nationality", prepareNationalityList(schoolservice.getAllNationlity()));
+			model.put("documents", ControllerHelper.prepareListOfDriverDoc(schoolservice.getDriverDocument(driver_id)));
+			model.put("nationality",ControllerHelper.prepareNationalityList(schoolservice.getAllNationlity()));
 			return new ModelAndView("SuperAdmin/edit_driver", model);
 		} else {
 			return new ModelAndView("redirect:manageDrivers");
@@ -1812,13 +1328,19 @@ public class SuperAdmin {
 				String part2 = parts[1]; // 034556
 				int rand = RandomUtils.nextInt();
 				imageName = driverbean.getContact_number() + rand + ".png";
-				String directory = request.getServletContext().getRealPath(
-						Assets.DRIVER_UPLOAD_PATH + imageName);
+				String directory = Assets.DRIVER_UPLOAD_PATH + imageName ;
 				byte[] imageByteArray = Base64.decodeBase64(part2);
 				System.out.println(directory);
 				FileOutputStream imageOutFile = new FileOutputStream(directory);
 				imageOutFile.write(imageByteArray);
 				imageOutFile.close();
+				
+				//TO DO : delete after update app 
+				String directory2 = request.getServletContext().getRealPath(	Assets.DRIVER_UPLOAD_PATH_to_del + imageName ) ;
+				FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
+				imageOutFile2.write(imageByteArray);
+				imageOutFile2.close();
+				
 			} else {
 				imageName = "";
 
@@ -1872,10 +1394,8 @@ public class SuperAdmin {
 						if (!fileName.isEmpty()) {
 							String[] fn = fileName.toString().split("\\.");
 							int rand = RandomUtils.nextInt();
-							String directory = request
-									.getServletContext()
-									.getRealPath(
-											Assets.INSURANCE_CARD_COPY+rand + fn[0] + "." + fn[1]);
+							String directory = 
+											Assets.INSURANCE_CARD_COPY_SYS+rand + fn[0] + "." + fn[1] ;
 							new_file_name += rand + fn[0] + "." + fn[1]
 									+ ",";
 							System.out.println(directory);
@@ -1969,15 +1489,15 @@ public class SuperAdmin {
 				model.put("heading", "Edit Driver");
 				model.put("driver", drivermodel);
 				model.put("routes",
-						getAllRoute(schoolservice.listRoute((Integer) session
+						ControllerHelper.getAllRoute(schoolservice.listRoute((Integer) session
 								.getAttribute("new_school_id"))));
 				model.put("schools",
-						prepareListOfSchool(schoolservice.listSchools()));
+						ControllerHelper.prepareListOfSchool(schoolservice.listSchools()));
 				SchoolModel schol = schoolservice.getSchoolById(school_id);
 				model.put("country_details",
 						schoolservice.getCountryById(schol.getCountry()));
-				model.put("documents", prepareListOfDriverDoc(schoolservice.getDriverDocument(driver_id)));
-				model.put("nationality", prepareNationalityList(schoolservice.getAllNationlity()));
+				model.put("documents", ControllerHelper.prepareListOfDriverDoc(schoolservice.getDriverDocument(driver_id)));
+				model.put("nationality",ControllerHelper.prepareNationalityList(schoolservice.getAllNationlity()));
 				model.addAttribute("success", "Driver updated successfully");
 				return new ModelAndView("SuperAdmin/edit_driver", model);
 			} else {
@@ -2016,10 +1536,10 @@ public class SuperAdmin {
 			model.put("driver", drivermodel);
 			model.put("route", route);
 			model.put("routes",
-					getAllRoute(schoolservice.listRoute((Integer) session
+					ControllerHelper.getAllRoute(schoolservice.listRoute((Integer) session
 							.getAttribute("new_school_id"))));
 			model.put("schools",
-					prepareListOfSchool(schoolservice.listSchools()));
+					ControllerHelper. prepareListOfSchool(schoolservice.listSchools()));
 			String ed=request.getParameter("v");
 			if(ed != null)
 			{
@@ -2027,7 +1547,7 @@ public class SuperAdmin {
 				schoolservice.updateHeadNotification(Integer.parseInt(new String(decodedBytes1)));
 				
 			}
-			model.put("documents", prepareListOfDriverDoc(schoolservice.getDriverDocument(driver_id)));
+			model.put("documents",ControllerHelper. prepareListOfDriverDoc(schoolservice.getDriverDocument(driver_id)));
 			return new ModelAndView("SuperAdmin/view_driver", model);
 		} else {
 			return new ModelAndView("redirect:manageDrivers");
@@ -2054,10 +1574,10 @@ public class SuperAdmin {
 		 return new ModelAndView("redirect:/login.html");
 		}
 		int school_id = (Integer) session.getAttribute("new_school_id");
-		model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
-		model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
+		model.put("schools",ControllerHelper. prepareListOfSchool(schoolservice.listSchools()));
+		model.put("routes", ControllerHelper.getAllRoute(schoolservice.listRoute(school_id)));
 		model.put("school_details", schoolservice.getSchoolById(school_id));
-		model.put("nationality", prepareNationalityList(schoolservice.getAllNationlity()));
+		model.put("nationality",ControllerHelper.prepareNationalityList(schoolservice.getAllNationlity()));
 		SchoolModel schol = schoolservice.getSchoolById(school_id);
 		model.put("country_details",schoolservice.getCountryById(schol.getCountry()));
 
@@ -2107,14 +1627,19 @@ public class SuperAdmin {
 					String part2 = parts[1]; // 034556
 					int rand = RandomUtils.nextInt();
 					imageName = driverbean.getContact_number() + rand + ".png";
-					String directory = request.getServletContext().getRealPath(
-							Assets.DRIVER_UPLOAD_PATH + imageName);
+					String directory =  Assets.DRIVER_UPLOAD_PATH + imageName ;
 					byte[] imageByteArray = Base64.decodeBase64(part2);
 					// Write a image byte array into file system
 					FileOutputStream imageOutFile = new FileOutputStream(
 							directory);
 					imageOutFile.write(imageByteArray);
 					imageOutFile.close();
+					
+					//TO DO : delete after update app 
+					String directory2 = 	request.getServletContext().getRealPath( Assets.DRIVER_UPLOAD_PATH_to_del + imageName ) ;
+					FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
+					imageOutFile2.write(imageByteArray);
+					imageOutFile2.close();
 				} else {
 					imageName = "";
 				}
@@ -2169,8 +1694,7 @@ public class SuperAdmin {
 				String qr_text = "" + insert_id + "";
 				ByteArrayOutputStream out = QRCode.from(qr_text)
 						.to(ImageType.PNG).stream();
-				String qr_directory = request.getServletContext().getRealPath(
-						Assets.STUDENT_QR_PATH + "d_" + insert_id + ".png");
+				String qr_directory = Assets.STUDENT_QR_PATH_SYS + "d_" + insert_id + ".png" ;
 
 				FileOutputStream fout = new FileOutputStream(new File(
 						qr_directory));
@@ -2222,13 +1746,12 @@ public class SuperAdmin {
 							System.out.println(fileName.toString());
 							String[] fn = fileName.toString().split("\\.");
 							int rand = RandomUtils.nextInt();
-							String directory = request.getServletContext()
-									.getRealPath(
-											Assets.INSURANCE_CARD_COPY
+							String directory = 
+											Assets.INSURANCE_CARD_COPY_SYS
 													+ rand
 													+ driverbean
 															.getDriver_fname()
-													+ "." + fn[1]);
+													+ "." + fn[1] ;
 							new_file_name += rand
 									+ driverbean.getDriver_fname() + "."
 									+ fn[1] + ",";
@@ -2293,12 +1816,12 @@ public class SuperAdmin {
 		HttpSession session = request.getSession();
 		int school_id = (Integer) session.getAttribute("new_school_id");
 		model.put("school_details", schoolservice.getSchoolById(school_id));
-		model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
+		model.put("routes", ControllerHelper.getAllRoute(schoolservice.listRoute(school_id)));
 		SchoolModel schol = schoolservice.getSchoolById(school_id);
 		model.put("country_details",
 				schoolservice.getCountryById(schol.getCountry()));
-		model.put("nationality", prepareNationalityList(schoolservice.getAllNationlity()));
-		model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
+		model.put("nationality",ControllerHelper.prepareNationalityList(schoolservice.getAllNationlity()));
+		model.put("schools", ControllerHelper.prepareListOfSchool(schoolservice.listSchools()));
 		return new ModelAndView("SuperAdmin/add_driver", model);
 
 	}
@@ -2331,7 +1854,7 @@ public class SuperAdmin {
 		}
 		int school_id = (Integer) session.getAttribute("new_school_id");
 		model.put("vechiles",
-				getAllVechiles(vechileservice.getVechile(school_id)));
+				ControllerHelper.getAllVechiles(vechileservice.getVechile(school_id), schoolservice));
 		// model.put("vechiles",
 		// getAllVechiles(vechileservice.getAllVehicles()));
 		model.put("school_details", schoolservice.getSchoolById(school_id));
@@ -2342,49 +1865,7 @@ public class SuperAdmin {
 		return new ModelAndView("SuperAdmin/all_vechiles");
 	}
 
-	/* Method for get country list */
-	private List<VechileBean> getAllVechiles(List<VehicleModel> vechiles) {
-
-		List<VechileBean> beans = null;
-		if (vechiles != null && !vechiles.isEmpty()) {
-			beans = new ArrayList<VechileBean>();
-			VechileBean bean = null;
-			for (VehicleModel vechile : vechiles) {
-				bean = new VechileBean();
-				SchoolModel stud = new SchoolModel();
-				stud = schoolservice.getSchoolById(vechile.getSchool_id());
-				bean.setBus_number(vechile.getBus_number());
-				if(vechile.getDriver_id()!=null && vechile.getDriver_id()!=0)
-				{
-					DriverModel d=schoolservice.getDriverById(vechile.getDriver_id());
-					if(d!=null)
-					{
-						bean.setColor(d.getDriver_fname()+" "+d.getDriver_lname());
-					}else
-					{
-						bean.setColor("N/A");
-					}
-					
-				}else
-				{
-					bean.setColor("N/A");
-				}
-				bean.setConfigurtion(vechile.getConfigurtion());
-				bean.setEngine(vechile.getEngine());
-				bean.setManufacture(vechile.getManufacture());
-				bean.setModel(vechile.getModel());
-				bean.setVechile_id(vechile.getVechile_id());
-				bean.setVehile_name(vechile.getVehile_name());
-				bean.setYear(vechile.getYear());
-				bean.setSchool_name(stud.getSchool_name());
-				bean.setInsurance_end_date(vechile.getInsurance_end_date());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
+	
 
 	/**
 	 * Function for add New Vehicles
@@ -2402,10 +1883,10 @@ public class SuperAdmin {
 			}
 			int school_id = (Integer) session.getAttribute("new_school_id");
 			model.put("drivers",
-					getDriversList(schoolservice.listDriver(school_id)));
+					ControllerHelper. getDriversList(schoolservice.listDriver(school_id) , schoolservice));
 			model.put("school_details", schoolservice.getSchoolById(school_id));
 			model.put("schools",
-					prepareListOfSchool(schoolservice.listSchools()));
+					ControllerHelper. prepareListOfSchool(schoolservice.listSchools()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -2541,13 +2022,12 @@ public class SuperAdmin {
 								System.out.println(fileName.toString());
 								String[] fn = fileName.toString().split("\\.");
 								int rand = RandomUtils.nextInt();
-								String directory = request.getServletContext()
-										.getRealPath(
-												Assets.INSURANCE_CARD_COPY
+								String directory = 
+												Assets.INSURANCE_CARD_COPY_SYS
 														+ rand
 														+ vechileBean
 																.getVehile_name()
-														+ "." + fn[1]);
+														+ "." + fn[1];
 								new_file_name += rand
 										+ vechileBean.getVehile_name() + "."
 										+ fn[1] + ",";
@@ -2618,7 +2098,8 @@ public class SuperAdmin {
 					vechile = null;
 					model.addAttribute("vechileBean", vechile);
 					model.put("school_details", schoolservice.getSchoolById((Integer) session.getAttribute("new_school_id")));
-					model.put("drivers",getDriversList(schoolservice.listDriver((Integer) session.getAttribute("new_school_id"))));
+					model.put("drivers",
+						ControllerHelper.	getDriversList(schoolservice.listDriver((Integer) session.getAttribute("new_school_id")), schoolservice));
 					model.addAttribute("success", "Vechile Added Successfully");
 
 				}
@@ -2631,7 +2112,7 @@ public class SuperAdmin {
 		HttpSession session = request.getSession();
 		int school_id = (Integer) session.getAttribute("new_school_id");
 		model.put("school_details", schoolservice.getSchoolById(school_id));
-		model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
+		model.put("schools", ControllerHelper. prepareListOfSchool(schoolservice.listSchools()));
 		model.addAttribute("heading", "Add Vehicle");
 		return new ModelAndView("SuperAdmin/add_vechile");
 
@@ -2660,14 +2141,14 @@ public class SuperAdmin {
 			model.put("heading", "Edit Vehicle");
 			model.put("vechileBean", vehiclemodel);
 			model.put("schools",
-					prepareListOfSchool(schoolservice.listSchools()));
+					ControllerHelper. prepareListOfSchool(schoolservice.listSchools()));
 			if (session.getAttribute("userRole")!= "Admin")
 			{
 			 return new ModelAndView("redirect:/login.html");
 			}
 			int school_id = (Integer) session.getAttribute("new_school_id");
 			model.put("school_details", schoolservice.getSchoolById(school_id));
-			model.put("documents", prepareListOfVehicleDoc(schoolservice.getVehicleDocument(vehiclemodel.getVechile_id())));
+			model.put("documents",ControllerHelper. prepareListOfVehicleDoc(schoolservice.getVehicleDocument(vehiclemodel.getVechile_id())));
 			
 			String ed=request.getParameter("v");
 			if(ed != null)
@@ -2676,7 +2157,8 @@ public class SuperAdmin {
 				schoolservice.updateHeadNotification(Integer.parseInt(new String(decodedBytes1)));
 				
 			}
-			model.put("drivers",getDriversList(schoolservice.listDriver((Integer) session.getAttribute("new_school_id"))));
+			model.put("drivers",
+					ControllerHelper. getDriversList(schoolservice.listDriver((Integer) session.getAttribute("new_school_id")) , schoolservice));
 			return new ModelAndView("SuperAdmin/edit_vehicle", model);
 		} else {
 			return new ModelAndView("redirect:manageVehicle");
@@ -2723,7 +2205,7 @@ public class SuperAdmin {
 				vehiclemodel.setSchool_id(vechile.getSchool_id());
 				model.addAttribute("vechileBean", vechile);
 				model.put("schools",
-						prepareListOfSchool(schoolservice.listSchools()));
+						ControllerHelper. prepareListOfSchool(schoolservice.listSchools()));
 				model.addAttribute("error", "You can not add more busses");
 				int school_id = (Integer) session.getAttribute("new_school_id");
 				model.put("school_details",
@@ -2801,10 +2283,8 @@ public class SuperAdmin {
 								byte[] bytes = fileName.getBytes();
 								String[] fn = fileName.toString().split("\\.");
 								int rand = RandomUtils.nextInt();
-								String directory = request
-										.getServletContext()
-										.getRealPath(
-												Assets.INSURANCE_CARD_COPY+rand + fn[0] + "." + fn[1]);
+								String directory = 
+												Assets.INSURANCE_CARD_COPY_SYS+rand + fn[0] + "." + fn[1] ;
 								new_file_name += rand + fn[0] + "." + fn[1]
 										+ ",";
 								System.out.println(directory);
@@ -2933,7 +2413,7 @@ public class SuperAdmin {
 		{
 		 return new ModelAndView("redirect:/login.html");
 		}
-		model.put("countries", prepareListofBean(schoolservice.listCountry()));
+		model.put("countries", ControllerHelper. prepareListofBean(schoolservice.listCountry()));
 		SchoolModel schoolinfo = (SchoolModel) schoolservice
 				.getSchoolById(school_id);
 		LoginModel school_admin = schoolservice.getMainSchoolAdmin(school_id);
@@ -2949,8 +2429,8 @@ public class SuperAdmin {
 		
 		model.addAttribute("schoolModel", schoolinfo);
 		model.addAttribute("schooladmin", school_admin);
-		model.put("all_school_admin", getParentList(schoolservice
-				.listSchoolAdmin(school_id)));
+		model.put("all_school_admin", ControllerHelper. getParentList(schoolservice
+				.listSchoolAdmin(school_id) , schoolservice));
 		}catch(Exception e)
 		{
 			System.out.println(e);
@@ -2987,13 +2467,18 @@ public class SuperAdmin {
 				String part2 = parts[1]; // 034556
 				int rand = RandomUtils.nextInt();
 				imageName = school.getSchool_name() + rand + ".png";
-				String directory = request.getServletContext().getRealPath(
-						Assets.SCHOOL_UPLOAD_PATH + imageName);
+				String directory =  Assets.SCHOOL_UPLOAD_PATH_SYS + imageName;
 				byte[] imageByteArray = Base64.decodeBase64(part2);
 				System.out.println(directory);
 				FileOutputStream imageOutFile = new FileOutputStream(directory);
 				imageOutFile.write(imageByteArray);
 				imageOutFile.close();
+				
+				//TO DO : delete after update app 
+				String directory2 = request.getServletContext().getRealPath(	Assets.SCHOOL_UPLOAD_PATH_SYS_to_del + imageName ) ;
+				FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
+				imageOutFile2.write(imageByteArray);
+				imageOutFile2.close();
 			} else {
 				imageName = "";
 
@@ -3033,7 +2518,7 @@ public class SuperAdmin {
 			schoolservice.editschooladmin(schooladmin.getUser_id(),
 					schooladminmodel);
 			Sms_api sms = new Sms_api();
-			sms.sendhttp("Your school infomation updated successfully ", 0,
+			sms.sendMsg("Your school infomation updated successfully ", 
 					schooladmin.getContact_number());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -3041,7 +2526,7 @@ public class SuperAdmin {
 		}
 		model.addAttribute("success", "School information updated successfully");
 
-		model.put("countries", prepareListofBean(schoolservice.listCountry()));
+		model.put("countries",ControllerHelper. prepareListofBean(schoolservice.listCountry()));
 		SchoolModel schoolinfo = (SchoolModel) schoolservice
 				.getSchoolById(school_id);
 		model.addAttribute("schoolModel", schoolinfo);
@@ -3049,7 +2534,7 @@ public class SuperAdmin {
 		LoginModel school_admin = schoolservice.getMainSchoolAdmin(school_id);
 		model.addAttribute("schooladmin", school_admin);
 		model.put("all_school_admin",
-				getParentList(schoolservice.listSchoolAdmin(school_id)));
+				ControllerHelper.getParentList(schoolservice.listSchoolAdmin(school_id),schoolservice));
 		model.addAttribute("heading", "School Information");
 		return new ModelAndView("SuperAdmin/school_infomation");
 	}
@@ -3084,7 +2569,17 @@ public class SuperAdmin {
 		 return new ModelAndView("redirect:/login.html");
 		}
 		int school_id = (Integer) session.getAttribute("new_school_id");
-		model.put("school_details", schoolservice.getSchoolById(school_id));
+		SchoolModel school = schoolservice.getSchoolById(school_id);
+		
+		model.put("school_details", school);
+
+		RouteBean route = new RouteBean() ;
+		route.setSource_lat(school.getSchool_lat());
+		route.setSource_lng(school.getSchool_lng());
+		route.setDestination_lat(school.getSchool_lat());
+		route.setDestination_lng(school.getSchool_lng());
+		model.put("route",  route)  ;
+		
 		return new ModelAndView("SuperAdmin/add_route_details", model);
 	}
 
@@ -3162,7 +2657,7 @@ public class SuperAdmin {
 		{
 		 return new ModelAndView("redirect:/login.html");
 		}
-		model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
+		model.put("schools", ControllerHelper. prepareListOfSchool(schoolservice.listSchools()));
 		return new ModelAndView("SuperAdmin/select_school");
 	}
 
@@ -3183,7 +2678,7 @@ public class SuperAdmin {
 			url = "SuperAdmin/select_school";
 			model.put("error", "Please select school");
 			model.put("schools",
-					prepareListOfSchool(schoolservice.listSchools()));
+					ControllerHelper.prepareListOfSchool(schoolservice.listSchools()));
 		} else {
 			url = "redirect:admin/schoolDashboard";
 		}
@@ -3235,46 +2730,20 @@ public class SuperAdmin {
 	public ModelAndView addRoute(@ModelAttribute("command") RouteBean route,
 			BindingResult result, ModelMap model, HttpServletRequest request) {
 		try {
-			String url = Assets.URL;
 			HttpSession session = request.getSession();
-			if (session.getAttribute("userRole")!= "Admin")
-			{
-			 return new ModelAndView("redirect:/login.html");
-			}
+			
 			int school_id = (Integer) session.getAttribute("new_school_id");
 			model.put("school_details", schoolservice.getSchoolById(school_id));
 			RouteModel routemodel = new RouteModel();
-			GoogleResponse res = convertToLatLong(route.getSource());
-			if (res.getStatus().equals("OK")) {
-				for (Result result1 : res.getResults()) {
-					System.out.println("Location is "
-							+ result1.getGeometry().getLocation_type());
-					routemodel.setSource_lat(result1.getGeometry()
-							.getLocation().getLat());
-					routemodel.setSource_lng(result1.getGeometry()
-							.getLocation().getLng());
-					model.addAttribute("source_lat", result1.getGeometry()
-							.getLocation().getLat());
-					model.addAttribute("source_lng", result1.getGeometry()
-							.getLocation().getLng());
-				}
-			}
-			GoogleResponse res1 = convertToLatLong(route.getDestination());
-			if (res.getStatus().equals("OK")) {
-				for (Result result2 : res1.getResults()) {
-					System.out.println("Location is "
-							+ result2.getGeometry().getLocation_type());
-					routemodel.setDestination_lat(result2.getGeometry()
-							.getLocation().getLat());
-					routemodel.setDestination_lng(result2.getGeometry()
-							.getLocation().getLng());
-					model.addAttribute("destination_lat", result2.getGeometry()
-							.getLocation().getLat());
-					model.addAttribute("destination_lng", result2.getGeometry()
-							.getLocation().getLng());
-				}
-			}
+           
+			System.out.println("Source_: " +  route.getSource_lat() +" --- " +  route.getSource_lng());
+			System.out.println("Destination: " +  route.getDestination_lat() +" --- " + route.getDestination_lng());
 
+			routemodel.setDestination_lat( route.getDestination_lat() );
+			routemodel.setDestination_lng( route.getDestination_lng() );
+			routemodel.setSource_lat( route.getSource_lat() );
+			routemodel.setSource_lng( route.getSource_lng() );
+			
 			routemodel.setSource(route.getSource());
 			routemodel.setDestination(route.getDestination());
 			routemodel.setRoute_id(null);
@@ -3285,79 +2754,15 @@ public class SuperAdmin {
 			routemodel.setDestination_note(route.getDestination_note());
 			routemodel.setRadius("");
 			long route_id = schoolservice.addRoute(routemodel);
-			model.addAttribute("source", route.getSource());
-			model.addAttribute("destination", route.getDestination());
-			model.addAttribute("route_id", route_id);
-			model.addAttribute("success", "success");
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
-		return new ModelAndView("SuperAdmin/add_route_details",model);
-		//return new ModelAndView("redirect:allRoute");
+		return new ModelAndView("redirect:allRoute");
 	}
 
-	/**
-	 * Method for get location from lat lng
-	 **/
-	public GoogleResponse convertFromLatLong(String latlongString)
-			throws IOException {
 
-		/*
-		 * Create an java.net.URL object by passing the request URL in
-		 * constructor. Here you can see I am converting the fullAddress String
-		 * in UTF-8 format. You will get Exception if you don't convert your
-		 * address in UTF-8 format. Perhaps google loves UTF-8 format. :) In
-		 * parameter we also need to pass "sensor" parameter. sensor (required
-		 * parameter) — Indicates whether or not the geocoding request comes
-		 * from a device with a location sensor. This value must be either true
-		 * or false.
-		 */
-		URL url = new URL(Assets.URL + "?latlng="
-				+ URLEncoder.encode(latlongString, "UTF-8") + "&sensor=false");
-		// Open the Connection
-		URLConnection conn = url.openConnection();
-
-		InputStream in = conn.getInputStream();
-		ObjectMapper mapper = new ObjectMapper();
-		GoogleResponse response = (GoogleResponse) mapper.readValue(in,
-				GoogleResponse.class);
-		in.close();
-		return response;
-
-	}
-
-	/**
-	 * Method for get latlng from address using google api
-	 **/
-	public GoogleResponse convertToLatLong(String fullAddress)
-			throws IOException {
-
-		/*
-		 * Create an java.net.URL object by passing the request URL in
-		 * constructor. Here you can see I am converting the fullAddress String
-		 * in UTF-8 format. You will get Exception if you don't convert your
-		 * address in UTF-8 format. Perhaps google loves UTF-8 format. :) In
-		 * parameter we also need to pass "sensor" parameter. sensor (required
-		 * parameter) — Indicates whether or not the geocoding request comes
-		 * from a device with a location sensor. This value must be either true
-		 * or false.
-		 */
-
-		URL url = new URL(Assets.URL + "?address="
-				+ URLEncoder.encode(fullAddress, "UTF-8") + "&sensor=false");
-		// Open the Connection
-		URLConnection conn = url.openConnection();
-
-		InputStream in = conn.getInputStream();
-		ObjectMapper mapper = new ObjectMapper();
-		GoogleResponse response = (GoogleResponse) mapper.readValue(in,
-				GoogleResponse.class);
-		in.close();
-		return response;
-
-	}
 
 	/**
 	 * Method for get all route by school
@@ -3379,7 +2784,7 @@ public class SuperAdmin {
 			 
 		int school_id = (Integer) session.getAttribute("new_school_id");
 		modelH.addAttribute("heading", "Manage Route");
-		model.put("staffs", getAllRoute(schoolservice.listRoute(school_id)));
+		model.put("staffs", ControllerHelper.getAllRoute(schoolservice.listRoute(school_id)));
 		model.put("school_details", schoolservice.getSchoolById(school_id));
 		return new ModelAndView("SuperAdmin/all_routes", model);
 		}catch(Exception e)
@@ -3389,29 +2794,7 @@ public class SuperAdmin {
 		
 	}
 
-	/* Method for get Student list */
-	private List<RouteBean> getAllRoute(List<RouteModel> route) {
-
-		List<RouteBean> beans = null;
-		if (route != null && !route.isEmpty()) {
-			beans = new ArrayList<RouteBean>();
-			RouteBean bean = null;
-			for (RouteModel st : route) {
-				bean = new RouteBean();
-				bean.setRoute_id(st.getRoute_id());
-				bean.setRoute_name(st.getRoute_name());
-				bean.setSource(st.getSource());
-				bean.setDestination(st.getDestination());
-				bean.setNote(st.getNote());
-				bean.setSource_note(st.getSource_note());
-				bean.setDestination_note(st.getDestination_note());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
+	
 
 	/**
 	 * Function for View Route
@@ -3442,10 +2825,10 @@ public class SuperAdmin {
 		
 		if (routemodel != null) {
 
-			model.put("latlong",getAllLatLng(schoolservice.listLatLng(route_id)));
+			model.put("latlong",ControllerHelper.getAllLatLng(schoolservice.listLatLng(route_id), studentservice));
 			model.put("heading", "View Route");
 			model.put("route", routemodel);
-			model.put("all_students", getStudentList(schoolservice.getStudentsByRouteId(route_id)));
+		
 			return new ModelAndView("SuperAdmin/view_route_map", model);
 		} else {
 			return new ModelAndView("redirect:allRoute");
@@ -3460,54 +2843,7 @@ public class SuperAdmin {
 
 	}
 
-	/* Method for get latlng of route */
-	private List<RouteLatLng> getAllLatLng(List<RouteLatLngModel> latlng) {
-
-		List<RouteLatLng> beans = null;
-		if (latlng != null && !latlng.isEmpty()) {
-			beans = new ArrayList<RouteLatLng>();
-			RouteLatLng bean = null;
-			for (RouteLatLngModel st : latlng) {
-				bean = new RouteLatLng();
-				
-				
-				StudentModel studentModel = studentservice.getStudentById(st.getStudent_id());
-				if(studentModel!=null)
-				{
-					
-					bean.setS_image(studentModel.getS_image_path());
-					bean.setS_class(studentModel.getStudent_class());
-					bean.setStudent_name(studentModel.getS_fname()+" "+studentModel.getFather_name()+" "+studentModel.getGrand_name()+" "+studentModel.getFamily_name());
-					bean.setAddress(studentModel.getS_address());
-					bean.setId(st.getId());
-					bean.setLat(st.getLat());
-					bean.setLng(st.getLng());
-					bean.setRoute_id(st.getRoute_id());
-					bean.setBlink_s(studentModel.getBlink_status());
-					bean.setStudent_id(studentModel.getStudent_id());
-					beans.add(bean);
-				}else
-				{
-					bean.setS_image("");
-					bean.setS_class("");
-					bean.setStudent_name("");
-					bean.setStudent_id(0);
-					bean.setAddress("");
-					bean.setId(null);
-					bean.setLat(null);
-					bean.setLng(null);
-					bean.setRoute_id(null);
-					bean.setBlink_s(0);
-					beans.add(bean);
-				}
-				
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
-
+	
 	/**
 	 * Function for edit Route
 	 **/
@@ -3516,50 +2852,20 @@ public class SuperAdmin {
 			@ModelAttribute("command") RouteBean route, RouteLatLng latlng,
 			BindingResult result, HttpServletRequest request, ModelMap model) {
 		
-		String route_id_str=request.getParameter("id");
-		byte[] decodedBytes = Base64.decodeBase64(""+route_id_str+"");
-		int route_id=Integer.parseInt(new String(decodedBytes));
 		try {
 			
-			String url = Assets.URL;
-			HttpSession session = request.getSession();
-			if (session.getAttribute("userRole")!= "Admin")
-			{
-			 return new ModelAndView("redirect:/login.html");
-			}
-			int school_id = (Integer) session.getAttribute("new_school_id");
-			model.put("school_details", schoolservice.getSchoolById(school_id));
+		     String route_id_str=request.getParameter("id");
+		     byte[] decodedBytes = Base64.decodeBase64(""+route_id_str+"");
+		     int route_id=Integer.parseInt(new String(decodedBytes));
+				int school_id = (Integer) request.getSession() .getAttribute("new_school_id");
+
+			
 			RouteModel routemodel = new RouteModel();
-			GoogleResponse res = convertToLatLong(route.getSource());
-			if (res.getStatus().equals("OK")) {
-				for (Result result1 : res.getResults()) {
-					System.out.println("Location is "
-							+ result1.getGeometry().getLocation_type());
-					routemodel.setSource_lat(result1.getGeometry()
-							.getLocation().getLat());
-					routemodel.setSource_lng(result1.getGeometry()
-							.getLocation().getLng());
-					model.addAttribute("source_lat", result1.getGeometry()
-							.getLocation().getLat());
-					model.addAttribute("source_lng", result1.getGeometry()
-							.getLocation().getLng());
-				}
-			}
-			GoogleResponse res1 = convertToLatLong(route.getDestination());
-			if (res.getStatus().equals("OK")) {
-				for (Result result2 : res1.getResults()) {
-					System.out.println("Location is "
-							+ result2.getGeometry().getLocation_type());
-					routemodel.setDestination_lat(result2.getGeometry()
-							.getLocation().getLat());
-					routemodel.setDestination_lng(result2.getGeometry()
-							.getLocation().getLng());
-					model.addAttribute("destination_lat", result2.getGeometry()
-							.getLocation().getLat());
-					model.addAttribute("destination_lng", result2.getGeometry()
-							.getLocation().getLng());
-				}
-			}
+
+			routemodel.setDestination_lat( route.getDestination_lat() );
+			routemodel.setDestination_lng( route.getDestination_lng() );
+			routemodel.setSource_lat( route.getSource_lat() );
+			routemodel.setSource_lng( route.getSource_lng() );
 
 			routemodel.setSource(route.getSource());
 			routemodel.setDestination(route.getDestination());
@@ -3568,42 +2874,15 @@ public class SuperAdmin {
 			routemodel.setNote(route.getNote());
 			routemodel.setSource_note(route.getSource_note());
 			routemodel.setDestination_note(route.getDestination_note());
+			
 			schoolservice.editRouteById(route_id, routemodel);
 			
-			model.addAttribute("source", route.getSource());
-			model.addAttribute("destination", route.getDestination());
-			model.addAttribute("route_id", route_id);
-
-			RouteModel routemodel1 = schoolservice.getRouteById(route_id);
-
-			model.put("latlong",
-					getAllLatLng(schoolservice.listLatLng(route_id)));
-			model.put("heading", "Edit Route");
-			model.put("route", routemodel1);
-			model.put("success", "success");
-
 		} catch (Exception e) {
-
+			e.printStackTrace();
 			System.out.println(e);
 		}
-		RouteModel routemodel = schoolservice.getRouteById(route_id);
-		if (routemodel != null) {
-			HttpSession session = request.getSession();
-			if (session.getAttribute("userRole")!= "Admin")
-			{
-			 return new ModelAndView("redirect:/login.html");
-			}
-			model.put("latlong",
-					getAllLatLng(schoolservice.listLatLng(route_id)));
-			model.put("heading", "Edit Route");
-			model.put("route", routemodel);
-			int school_id = (Integer) session.getAttribute("new_school_id");
-			model.put("school_details", schoolservice.getSchoolById(school_id));
-			return new ModelAndView("SuperAdmin/edit_route", model);
-		} else {
-			return new ModelAndView("redirect:allRoute");
-		}
-		//return new ModelAndView("redirect:allRoute");
+		return new ModelAndView("redirect:allRoute");
+
 
 	}
 
@@ -3636,9 +2915,13 @@ public class SuperAdmin {
 		model.put("school_details", schoolservice.getSchoolById(school_id));
 		if (routemodel != null) {
 			model.put("latlong",
-					getAllLatLng(schoolservice.listLatLng(route_id)));
+					ControllerHelper.getAllLatLng(schoolservice.listLatLng(route_id), studentservice));
 			model.put("heading", "Edit Route");
 			model.put("route", routemodel);
+			model.put("start_lat",  routemodel.getSource_lat()) ;
+			model.put("start_lang", routemodel.getSource_lng()) ;
+			model.put("end_lat", routemodel.getDestination_lat()) ;
+			model.put("end_lang", routemodel.getDestination_lng()) ;
 			return new ModelAndView("SuperAdmin/edit_route", model);
 		} else {
 			return new ModelAndView("redirect:allRoute");
@@ -3671,9 +2954,9 @@ public class SuperAdmin {
 		modelH.addAttribute("heading", "Assign Route");
 		Map<String, Object> model = new HashMap<String, Object>();
 		int school_id = (Integer) session.getAttribute("new_school_id");
-		model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
+		model.put("routes", ControllerHelper.getAllRoute(schoolservice.listRoute(school_id)));
 		model.put("students",
-				getStudentList(schoolservice.listStudent(school_id)));
+				ControllerHelper. getStudentList(schoolservice.listStudent(school_id) ,schoolservice));
 		model.put("school_details", schoolservice.getSchoolById(school_id));
 		return new ModelAndView("SuperAdmin/assign_student_route", model);
 	}
@@ -3703,7 +2986,7 @@ public class SuperAdmin {
 			if (routelatlng == null) {
 				RouteLatLngModel routeNew = new RouteLatLngModel();
 				routeNew.setAddress(route.getAddress());
-				GoogleResponse res = convertToLatLong(route.getAddress());
+				GoogleResponse res = ControllerHelper.convertToLatLong(route.getAddress());
 				if (res.getStatus().equals("OK")) {
 					for (Result result1 : res.getResults()) {
 						routeNew.setLat(result1.getGeometry().getLocation()
@@ -3725,9 +3008,9 @@ public class SuperAdmin {
 
 				model.put("error", "You already assigned this student");
 			}
-			model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
+			model.put("routes", ControllerHelper.getAllRoute(schoolservice.listRoute(school_id)));
 			model.put("students",
-					getStudentList(schoolservice.listStudent(school_id)));
+					ControllerHelper. getStudentList(schoolservice.listStudent(school_id) ,schoolservice));
 
 		} catch (Exception e) {
 			System.out.println(e);
@@ -3735,68 +3018,6 @@ public class SuperAdmin {
 		}
 
 		return new ModelAndView("SuperAdmin/assign_student_route", model);
-	}
-
-	/**
-	 * Function for edit Student route
-	 **/
-	@RequestMapping(value = "admin/editStudentRoute", method = RequestMethod.GET)
-	public ModelAndView editStudentRoute(
-			@ModelAttribute("command") RouteLatLng routelatlng,
-			BindingResult result, HttpServletRequest request, ModelMap modelH) {
-		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole")!= "Admin")
-		{
-		 return new ModelAndView("redirect:/login.html");
-		}
-		modelH.addAttribute("heading", "Assign Route");
-		Map<String, Object> model = new HashMap<String, Object>();
-		int school_id = (Integer) session.getAttribute("new_school_id");
-		model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
-		model.put("school_details", schoolservice.getSchoolById(school_id));
-		return new ModelAndView("SuperAdmin/edit_assign_student_route", model);
-	}
-
-	/**
-	 * Function for Update Student Route
-	 * 
-	 * @throws IOException
-	 **/
-	@RequestMapping(value = "admin/editStudentRoute", method = RequestMethod.POST)
-	public ModelAndView editStudentRoute(
-			@ModelAttribute("command") RouteLatLng route, BindingResult result,
-			ModelMap modelH, HttpServletRequest request) throws IOException {
-		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole")!= "Admin")
-		{
-		 return new ModelAndView("redirect:/login.html");
-		}
-		RouteLatLngModel latlngmodel = new RouteLatLngModel();
-		latlngmodel.setAddress(route.getAddress());
-		GoogleResponse res = convertToLatLong(route.getAddress());
-		if (res.getStatus().equals("OK")) {
-			for (Result result1 : res.getResults()) {
-				latlngmodel
-						.setLat(result1.getGeometry().getLocation().getLat());
-				latlngmodel
-						.setLng(result1.getGeometry().getLocation().getLng());
-			}
-		}
-
-		schoolservice.editStudentRoute(route.getStudent_id(), latlngmodel);
-		if (session.getAttribute("userRole")!= "Admin")
-		{
-		 return new ModelAndView("redirect:/login.html");
-		}
-		modelH.addAttribute("heading", "Assign Route");
-		Map<String, Object> model = new HashMap<String, Object>();
-		int school_id = (Integer) session.getAttribute("new_school_id");
-		model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
-		model.put("success", "Student Route Updated successfully");
-
-		model.put("heading", "Edit Student Route");
-		model.put("school_details", schoolservice.getSchoolById(school_id));
-		return new ModelAndView("SuperAdmin/edit_assign_student_route", model);
 	}
 
 	/**
@@ -3815,7 +3036,7 @@ public class SuperAdmin {
 		int school_id = (Integer) session.getAttribute("new_school_id");
 		model.put("school_details", schoolservice.getSchoolById(school_id));
 		model.put("school_admin",
-				getParentList(schoolservice.listSchoolAdmin(school_id)));
+				ControllerHelper. getParentList(schoolservice.listSchoolAdmin(school_id),schoolservice));
 		return new ModelAndView("SuperAdmin/add_school_admin");
 	}
 
@@ -3890,8 +3111,8 @@ public class SuperAdmin {
 				
 				schoolservice.addParent(schooladminmodel);
 				Sms_api sms = new Sms_api();
-				sms.sendhttp("Your login details are username=" + username
-						+ " and password=" + password, 0,
+				sms.sendMsg("Your login details are username=" + username
+						+ " and password=" + password,
 						schooladmin.getContact_number());
 				model.addAttribute("username", username);
 				model.addAttribute("password", password);
@@ -3905,11 +3126,11 @@ public class SuperAdmin {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
+		model.put("schools",ControllerHelper. prepareListOfSchool(schoolservice.listSchools()));
 		HttpSession session = request.getSession();
 		int school_id = (Integer) session.getAttribute("new_school_id");
 		model.put("school_admin",
-				getParentList(schoolservice.listSchoolAdmin(school_id)));
+				ControllerHelper. getParentList(schoolservice.listSchoolAdmin(school_id),schoolservice));
 		model.put("school_details", schoolservice.getSchoolById(school_id));
 		return new ModelAndView("SuperAdmin/add_school_admin");
 
@@ -3933,7 +3154,7 @@ public class SuperAdmin {
 		Map<String, Object> model = new HashMap<String, Object>();
 		/* model.put("parents", getParentList(studentservice.getAllParents())); */
 		model.put("parents",
-				getParentList(schoolservice.listSchoolAdmin(school_id)));
+				ControllerHelper. getParentList(schoolservice.listSchoolAdmin(school_id),schoolservice));
 
 		return new ModelAndView("SuperAdmin/all_school_admin", model);
 	}
@@ -3955,7 +3176,7 @@ public class SuperAdmin {
 
 			model.put("heading", "Edit School Admin");
 			model.put("schools",
-					prepareListOfSchool(schoolservice.listSchools()));
+					ControllerHelper.	prepareListOfSchool(schoolservice.listSchools()));
 			model.put("parent", parent);
 			HttpSession session = request.getSession();
 			if (session.getAttribute("userRole")!= "Admin")
@@ -3965,7 +3186,7 @@ public class SuperAdmin {
 			int school_id = (Integer) session.getAttribute("new_school_id");
 			model.put("school_details", schoolservice.getSchoolById(school_id));
 			model.put("school_admin",
-					getParentList(schoolservice.listSchoolAdmin(school_id)));
+					ControllerHelper. getParentList(schoolservice.listSchoolAdmin(school_id),schoolservice));
 			SchoolModel schol = schoolservice.getSchoolById(school_id);
 			model.put("country_details",
 					schoolservice.getCountryById(schol.getCountry()));
@@ -4019,7 +3240,7 @@ public class SuperAdmin {
 		HttpSession session = request.getSession();
 		int school_id = (Integer) session.getAttribute("new_school_id");
 		model.put("school_admin",
-				getParentList(schoolservice.listSchoolAdmin(school_id)));
+				ControllerHelper.	getParentList(schoolservice.listSchoolAdmin(school_id),schoolservice));
 		return new ModelAndView("SuperAdmin/edit_school_admin", model);
 		}catch(Exception e)
 		{
@@ -4049,7 +3270,7 @@ public class SuperAdmin {
 
 			model.put("heading", "View School Admin");
 			model.put("schools",
-					prepareListOfSchool(schoolservice.listSchools()));
+					ControllerHelper.	prepareListOfSchool(schoolservice.listSchools()));
 			model.put("parent", parent);
 			int school_id = (Integer) session.getAttribute("new_school_id");
 			model.put("school_details", schoolservice.getSchoolById(school_id));
@@ -4287,17 +3508,17 @@ public class SuperAdmin {
 			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 			Date date = new Date();
 			model.put("current_date", dateFormat.format(date));
-			model.put("routes", getAllRoute(schoolservice
+			model.put("routes", ControllerHelper.getAllRoute(schoolservice
 					.listRoute(student_id)));
 			RouteLatLngModel latlngmodel = studentservice
 					.getLatLngBySId(student_id);
-					model.put("allParent", getParentList(schoolservice
-					.getParentByPIdList(studentModel.getP_status_id())));
+					model.put("allParent",ControllerHelper. getParentList(schoolservice
+					.getParentByPIdList(studentModel.getP_status_id()),schoolservice));
 			model.put("latlng", latlngmodel);
 			
 			//Get holiday by school id 
-			List<HolidayBean> a=getHolidayList(schoolservice.getAllHoliday(school_id));
-			List<HolidayDeletedBean> b=getDeletedHolidayList(schoolservice.getAllDeletedHoliday(school_id));
+			List<HolidayBean> a=ControllerHelper.getHolidayList(schoolservice.getAllHoliday(school_id));
+			List<HolidayDeletedBean> b=ControllerHelper.getDeletedHolidayList(schoolservice.getAllDeletedHoliday(school_id));
 			if(a!=null)
 			{
 				
@@ -4325,8 +3546,8 @@ public class SuperAdmin {
 			}
 			
 			
-			//model.put("all_holiday",getHolidayList(schoolservice.getAllHoliday(school_id)));
-			model.put("all_present", getPresentList(schoolservice
+			//model.put("all_holiday",ControllerHelper.getHolidayList(schoolservice.getAllHoliday(school_id)));
+			model.put("all_present", ControllerHelper.getPresentList(schoolservice
 			.getStudentAttendanceList(student_id)));
 
 			} catch (Exception e) {
@@ -4391,8 +3612,8 @@ public class SuperAdmin {
 			Calendar mycal = new GregorianCalendar(iYear, iMonth, iDay);
 			int daysInMonth = mycal.getActualMaximum(Calendar.DAY_OF_MONTH);
 			System.out.println("Day in month="+daysInMonth);
-			List<HolidayBean> b=getHolidayList(schoolservice.getAllHolidayByMonth(school_id,month,year));
-			List<HolidayDeletedBean> c=getDeletedHolidayList(schoolservice.getAllDeletedHoliday(school_id));
+			List<HolidayBean> b=ControllerHelper.getHolidayList(schoolservice.getAllHolidayByMonth(school_id,month,year));
+			List<HolidayDeletedBean> c=ControllerHelper.getDeletedHolidayList(schoolservice.getAllDeletedHoliday(school_id));
 			try{
 			for(int i=0;i<b.size();i++)
 			{
@@ -4432,56 +3653,9 @@ public class SuperAdmin {
 
 	}
 
-	/**
-	 * Method for get all hodiday list
-	 * **/
-	private List<HolidayBean> getHolidayList(List<HolidayModel> holiday) {
+	
 
-		List<HolidayBean> beans = null;
-		if (holiday != null && !holiday.isEmpty()) {
-			beans = new ArrayList<HolidayBean>();
-			HolidayBean bean = null;
-			for (HolidayModel holi : holiday) {
-				bean = new HolidayBean();
-				bean.setH_id(holi.getH_id());
-				bean.setHoliday_date(holi.getHoliday_date());
-				bean.setHoliday_name(holi.getHoliday_name());
-				bean.setHoliday_enddate(holi.getHoliday_enddate());
-				bean.setSchool_id(holi.getSchool_id());
-				bean.setHoliday_start_date(holi.getHoliday_start_date());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
-
-	/**
-	 * Method for get all hodiday list
-	 * **/
-	private List<AttendanceBean> getPresentList(List<AttendanceModel> presents) {
-
-		List<AttendanceBean> beans = null;
-		if (presents != null && !presents.isEmpty()) {
-			beans = new ArrayList<AttendanceBean>();
-			AttendanceBean bean = null;
-			for (AttendanceModel present : presents) {
-				bean = new AttendanceBean();
-				bean.setA_id(present.getA_id());
-				bean.setDate(present.getDate());
-				bean.setLogin_date(present.getLogin_date());
-				bean.setLogin_time(present.getLogin_time());
-				bean.setLogout_time(present.getLogout_time());
-				bean.setLogin_evening(present.getLogin_evening());
-				bean.setLogout_evening(present.getLogout_evening());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
+	
 
 	@RequestMapping(value = "admin/addHoliday", method = RequestMethod.GET)
 	public ModelAndView addHoliday(
@@ -4575,8 +3749,8 @@ public class SuperAdmin {
 		model.put("school_id", school_id);
 		model.put("current_date", dateFormat.format(date));
 		model.put("all_holiday",
-				getHolidayList(schoolservice.getAllHoliday(school_id)));
-		model.put("holidays", getHolidays(frontService.getHolidayByMonth(month,
+				ControllerHelper.getHolidayList(schoolservice.getAllHoliday(school_id)));
+		model.put("holidays", ControllerHelper.getHolidays(frontService.getHolidayByMonth(month,
 				year, school_id)));
 		model.put("school_details", schoolservice.getSchoolById(school_id));
 		return new ModelAndView("SuperAdmin/view_admin_holiday_calendar", model);
@@ -4602,7 +3776,7 @@ public class SuperAdmin {
 		{
 		 return new ModelAndView("redirect:/login.html");
 		}
-		model.put("school_admin", getSuperList(schoolservice.listSuperAdmin()));
+		model.put("school_admin",ControllerHelper.getSuperList(schoolservice.listSuperAdmin()));
 		return new ModelAndView("SuperAdmin/add_super_admin");
 	}
 
@@ -4671,8 +3845,8 @@ public class SuperAdmin {
 				schooladminmodel.setChat_sound(0);
 				schoolservice.addParent(schooladminmodel);
 				Sms_api sms = new Sms_api();
-				sms.sendhttp("Your login details are username=" + username
-						+ " and password=" + password, 0,
+				sms.sendMsg("Your login details are username=" + username
+						+ " and password=" + password, 
 						schooladmin.getContact_number());
 				model.addAttribute("username", username);
 				model.addAttribute("password", password);
@@ -4686,36 +3860,13 @@ public class SuperAdmin {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
-		model.put("school_admin", getSuperList(schoolservice.listSuperAdmin()));
+		model.put("schools",ControllerHelper. prepareListOfSchool(schoolservice.listSchools()));
+		model.put("school_admin",ControllerHelper.getSuperList(schoolservice.listSuperAdmin()));
 		return new ModelAndView("SuperAdmin/add_super_admin");
 
 	}
 
-	/* Method for get country list */
-	private List<LoginBean> getSuperList(List<LoginModel> users) {
-
-		List<LoginBean> beans = null;
-		if (users != null && !users.isEmpty()) {
-			beans = new ArrayList<LoginBean>();
-			LoginBean bean = null;
-			for (LoginModel user : users) {
-				bean = new LoginBean();
-				bean.setUser_id(user.getUser_id());
-				bean.setP_status(user.getP_status());
-				bean.setFirst_name(user.getFirst_name());
-				bean.setLast_name(user.getLast_name());
-				bean.setUser_name(user.getUser_name());
-				bean.setUser_email(user.getUser_email());
-				bean.setContact_number(user.getContact_number());
-				bean.setPermission(user.getPermission());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
+	
 
 	/**
 	 * Function for get all manager of current school
@@ -4731,7 +3882,7 @@ public class SuperAdmin {
 		}
 		modelH.addAttribute("heading", "Super Admin");
 		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("parents", getSuperList(schoolservice.listSuperAdmin()));
+		model.put("parents",ControllerHelper.getSuperList(schoolservice.listSuperAdmin()));
 		return new ModelAndView("SuperAdmin/all_super_admin", model);
 	}
 
@@ -4768,10 +3919,10 @@ public class SuperAdmin {
 			}
 			model.put("heading", "Edit School Admin");
 			model.put("schools",
-					prepareListOfSchool(schoolservice.listSchools()));
+					ControllerHelper.prepareListOfSchool(schoolservice.listSchools()));
 			model.put("parent", parent);
 			model.put("school_admin",
-					getSuperList(schoolservice.listSuperAdmin()));
+					ControllerHelper.getSuperList(schoolservice.listSuperAdmin()));
 			return new ModelAndView("SuperAdmin/edit_super_admin", model);
 		} else {
 			return new ModelAndView("redirect:manageSuperAdmin");
@@ -4815,7 +3966,7 @@ public class SuperAdmin {
 		}
 		LoginModel parent = schoolservice.getParentById(super_id);
 		model.put("parent", parent);
-		model.put("school_admin", getSuperList(schoolservice.listSuperAdmin()));
+		model.put("school_admin",ControllerHelper.getSuperList(schoolservice.listSuperAdmin()));
 		return new ModelAndView("SuperAdmin/edit_super_admin", model);
 		} catch (Exception e) {
 			return new ModelAndView("redirect:manageSuperAdmin");
@@ -4846,7 +3997,7 @@ public class SuperAdmin {
 
 			model.put("heading", "View Super Admin");
 			model.put("schools",
-					prepareListOfSchool(schoolservice.listSchools()));
+					ControllerHelper.prepareListOfSchool(schoolservice.listSchools()));
 			model.put("parent", parent);
 			model.put("school_admin", parent);
 			return new ModelAndView("SuperAdmin/view_super_admin", model);
@@ -4878,8 +4029,8 @@ public class SuperAdmin {
 		Map<String, Object> model = new HashMap<String, Object>();
 		
 		
-		List<HolidayBean> a=getHolidayList(schoolservice.getAllHoliday(school_id));
-		List<HolidayDeletedBean> b=getDeletedHolidayList(schoolservice.getAllDeletedHoliday(school_id));
+		List<HolidayBean> a=ControllerHelper.getHolidayList(schoolservice.getAllHoliday(school_id));
+		List<HolidayDeletedBean> b=ControllerHelper.getDeletedHolidayList(schoolservice.getAllDeletedHoliday(school_id));
 		
 		try{
 		for(int i=0;i<a.size();i++)
@@ -4901,13 +4052,13 @@ public class SuperAdmin {
 		
 		
 		model.put("all_holiday",a);
-		model.put("deleted_holiday", getDeletedHolidayList(schoolservice.getAllDeletedHoliday(school_id)));
+		model.put("deleted_holiday", ControllerHelper.getDeletedHolidayList(schoolservice.getAllDeletedHoliday(school_id)));
 		
 		
 		
 		
 		/*model.put("all_holiday",
-				getHolidayList(schoolservice.getAllHoliday(school_id)));*/
+				ControllerHelper.getHolidayList(schoolservice.getAllHoliday(school_id)));*/
 		model.put("school_details", schoolservice.getSchoolById(school_id));
 		return new ModelAndView("SuperAdmin/all_holiday", model);
 	}
@@ -4938,7 +4089,7 @@ public class SuperAdmin {
 			model.put("heading", "Edit Holiday");
 			model.put("holiday", holidaymodel);
 			model.put("schools",
-					prepareListOfSchool(schoolservice.listSchools()));
+					ControllerHelper.prepareListOfSchool(schoolservice.listSchools()));
 			model.put("parent", holidaymodel);
 			return new ModelAndView("SuperAdmin/edit_holiday", model);
 		} else {
@@ -4977,7 +4128,7 @@ public class SuperAdmin {
 		// return new ModelAndView("redirect:manageParents");
 		HolidayModel holidaymodel1 = schoolservice.getHolidayById(holiday_id);
 		model.put("heading", "Edit Holiday");
-		model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
+		model.put("schools",ControllerHelper. prepareListOfSchool(schoolservice.listSchools()));
 		model.put("holiday", holidaymodel1);
 		model.put("success", "Holiday updated successfully");
 		return new ModelAndView("SuperAdmin/edit_holiday", model);
@@ -4994,7 +4145,6 @@ public class SuperAdmin {
 		System.out.println(holiday.getH_id());
 		schoolservice.deleteHoliday(holiday.getH_id());
 		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("staffs", getStaffList(staffservice.getAllStaff()));
 		model.put("success", "Holiday Deleted deleted successfully");
 		HttpSession session = request.getSession();
 		if (session.getAttribute("userRole")!= "Admin")
@@ -5009,23 +4159,7 @@ public class SuperAdmin {
 
 	}
 
-	/**
-	 * Function for delete holiday from admin dashboard
-	 **/
-	/*
-	 * @RequestMapping(value = "admin/deleteAdminHoliday", method =
-	 * RequestMethod.GET) public ModelAndView
-	 * deleteAdminHoliday(@ModelAttribute("command") HolidayBean holiday,
-	 * BindingResult result,ModelMap modelH) {
-	 * 
-	 * schoolservice.deleteHoliday(holiday.getH_id()); Map<String, Object> model
-	 * = new HashMap<String, Object>(); model.put("staffs",
-	 * getStaffList(staffservice.getAllStaff())); model.put("success",
-	 * "Holiday Deleted deleted successfully"); return new
-	 * ModelAndView("redirect:manageHoliday",model);
-	 * 
-	 * }
-	 */
+	
 	/**
 	 * Function for get all holiday of current school
 	 **/
@@ -5051,34 +4185,14 @@ public class SuperAdmin {
 		model.put("school_id", school_id);
 		model.put("current_date", dateFormat.format(date));
 		model.put("all_holiday",
-				getHolidayList(schoolservice.getAllHoliday(school_id)));
-		model.put("holidays", getHolidays(frontService.getHolidayByMonth(month,
+				ControllerHelper.getHolidayList(schoolservice.getAllHoliday(school_id)));
+		model.put("holidays", ControllerHelper.getHolidays(frontService.getHolidayByMonth(month,
 				year, school_id)));
 		model.put("school_details", schoolservice.getSchoolById(school_id));
 		return new ModelAndView("SuperAdmin/view_admin_holiday_calendar", model);
 	}
 
-	/* Method for get holiday list by current month */
-	private List<HolidayBean> getHolidays(List<HolidayModel> holidays) {
-
-		List<HolidayBean> beans = null;
-		if (holidays != null && !holidays.isEmpty()) {
-			beans = new ArrayList<HolidayBean>();
-			HolidayBean bean = null;
-			for (HolidayModel holiday : holidays) {
-				bean = new HolidayBean();
-				bean.setHoliday_date(holiday.getHoliday_date());
-				bean.setHoliday_name(holiday.getHoliday_name());
-				bean.setH_id(holiday.getH_id());
-				bean.setSchool_id(holiday.getSchool_id());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
-
+	
 	/**
 	 * Function for get all holiday of current school
 	 **/
@@ -5103,9 +4217,9 @@ public class SuperAdmin {
 		int month = Integer.parseInt(dateFormat2.format(date));
 		model.put("school_id", school_id);
 		model.put("current_date", dateFormat.format(date));
-		model.put("all_holiday", getHolidayList(schoolservice.getAllHoliday(0)));
+		model.put("all_holiday", ControllerHelper.getHolidayList(schoolservice.getAllHoliday(0)));
 		model.put("holidays",
-				getHolidays(frontService.getHolidayByMonth(month, year, 0)));
+				ControllerHelper.getHolidays(frontService.getHolidayByMonth(month, year, 0)));
 		return new ModelAndView("SuperAdmin/view_admin_holiday_calendar", model);
 	}
 
@@ -5124,7 +4238,7 @@ public class SuperAdmin {
 		int school_id = 0;
 		modelH.addAttribute("heading", "Holiday");
 		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("all_holiday", getHolidayList(schoolservice.getAllHoliday(0)));
+		model.put("all_holiday", ControllerHelper.getHolidayList(schoolservice.getAllHoliday(0)));
 		model.put("school_details", schoolservice.getSchoolById(0));
 		return new ModelAndView("SuperAdmin/all_admin_holiday", model);
 	}
@@ -5216,8 +4330,8 @@ public class SuperAdmin {
 		model.put("school_id", school_id);
 		model.put("current_date", dateFormat.format(date));
 		model.put("all_holiday",
-				getHolidayList(schoolservice.getAllHoliday(school_id)));
-		model.put("holidays", getHolidays(frontService.getHolidayByMonth(month,
+				ControllerHelper.getHolidayList(schoolservice.getAllHoliday(school_id)));
+		model.put("holidays", ControllerHelper.getHolidays(frontService.getHolidayByMonth(month,
 				year, school_id)));
 		return new ModelAndView("SuperAdmin/view_admin_holiday_calendar", model);
 
@@ -5256,7 +4370,7 @@ public class SuperAdmin {
 			model.put("heading", "Edit Holiday");
 			model.put("holiday", holidaymodel);
 			model.put("schools",
-					prepareListOfSchool(schoolservice.listSchools()));
+					ControllerHelper.prepareListOfSchool(schoolservice.listSchools()));
 			model.put("parent", holidaymodel);
 			return new ModelAndView("SuperAdmin/edit_admin_holiday", model);
 		} else
@@ -5294,7 +4408,7 @@ public class SuperAdmin {
 		// return new ModelAndView("redirect:manageParents");
 		HolidayModel holidaymodel1 = schoolservice.getHolidayById(holiday_id);
 		model.put("heading", "Edit Holiday");
-		model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
+		model.put("schools", ControllerHelper.prepareListOfSchool(schoolservice.listSchools()));
 		model.put("holiday", holidaymodel1);
 		model.put("success", "Holiday updated successfully");
 		return new ModelAndView("SuperAdmin/edit_admin_holiday", model);
@@ -5326,7 +4440,7 @@ public class SuperAdmin {
 		String message = parent.getSchool_name();
 		System.out.println(message);
 		Sms_api sms = new Sms_api();
-		sms.sendhttp(message, 0, contact_number);
+		sms.sendMsg(message, contact_number);
 		
 		return new ModelAndView("redirect:" + current_url);
 	}
@@ -5357,21 +4471,21 @@ public class SuperAdmin {
 			}
 			int school_id = (Integer) session.getAttribute("new_school_id");
 			model.put("school_details", schoolservice.getSchoolById(school_id));
-			model.put("students", getDriverTrackList(studentservice
-					.getDriverTrack(studentModel.getS_route_id())));
+			model.put("students", ControllerHelper.getDriverTrackList(studentservice
+					.getDriverTrack(studentModel.getS_route_id()), schoolservice));
 			model.put("route_id", studentModel.getS_route_id());
 			RouteModel routemodel =new RouteModel();
 			System.out.println("Student Route"+studentModel.getS_route_id());
 			routemodel = schoolservice.getRouteById(studentModel.getS_route_id());
 			if (routemodel != null) {
-				model.put("latlong",getAllLatLng(schoolservice.listLatLng(studentModel.getS_route_id())));
+				model.put("latlong",ControllerHelper.getAllLatLng(schoolservice.listLatLng(studentModel.getS_route_id()), studentservice));
 				model.put("route", routemodel);
 			}
-			model.put("students", getDriverTrackList(studentservice
-					.getDriverTrack(studentModel.getS_route_id())));
+			model.put("students", ControllerHelper.getDriverTrackList(studentservice
+					.getDriverTrack(studentModel.getS_route_id()), schoolservice));
 			System.out.println("Route id="+studentModel.getS_route_id());
-			model.put("size_l",getDriverTrackList(studentservice.getDriverTrack(studentModel.getS_route_id())).size() - 1);
-			model.put("first_lat_lng", getDriverTrackList(studentservice.getDriverTrackLimit(studentModel.getS_route_id())));
+			model.put("size_l",ControllerHelper.getDriverTrackList(studentservice.getDriverTrack(studentModel.getS_route_id()), schoolservice).size() - 1);
+			model.put("first_lat_lng", ControllerHelper.getDriverTrackList(studentservice.getDriverTrackLimit(studentModel.getS_route_id()), schoolservice));
 			
 			DriverModel DM=new DriverModel();
 			DM=schoolservice.getDriverByRouteId(studentModel.getS_route_id());
@@ -5381,7 +4495,8 @@ public class SuperAdmin {
 			
 		  //  model.put("driver_login_date",dam.getLogin_date());
 		    // model.put("driver_login_date",dam.getLogin_date());
-		    model.put("all_students", getStudentList(schoolservice.getStudentsByRouteId(studentModel.getS_route_id())));
+		    model.put("all_students", ControllerHelper.
+		    		getStudentList(schoolservice.getStudentsByRouteId(studentModel.getS_route_id()),schoolservice));
 		    if(dam!=null)
 			   {
 				   model.put("driver_login_date",dam.getLogin_time());
@@ -5390,10 +4505,10 @@ public class SuperAdmin {
 				   model.put("driver_login_date","");
 			   }
 		    List<VechileBean> v=new ArrayList<VechileBean>();
-			v=getDriverVehicleList(schoolservice.getVechileByDriverId(DM.getDriver_id()));
+			v=ControllerHelper.getDriverVehicleList(schoolservice.getVechileByDriverId(DM.getDriver_id()));
 			if(v!=null)
 			{
-				  model.put("vehicle_details",getDriverVehicleList(schoolservice.getVechileByDriverId(DM.getDriver_id())));
+				  model.put("vehicle_details",ControllerHelper.getDriverVehicleList(schoolservice.getVechileByDriverId(DM.getDriver_id())));
 			}else
 			{
 				  model.put("vehicle_details","");
@@ -5424,21 +4539,21 @@ public class SuperAdmin {
 			}
 			int school_id = (Integer) session.getAttribute("new_school_id");
 			model.put("school_details", schoolservice.getSchoolById(school_id));
-			model.put("students", getDriverTrackList(studentservice
-					.getDriverTrack(studentModel.getS_route_id())));
+			model.put("students", ControllerHelper.getDriverTrackList(studentservice
+					.getDriverTrack(studentModel.getS_route_id()), schoolservice));
 			model.put("route_id", studentModel.getS_route_id());
 			RouteModel routemodel =new RouteModel();
 			System.out.println("Student Route"+studentModel.getS_route_id());
 			routemodel = schoolservice.getRouteById(studentModel.getS_route_id());
 			if (routemodel != null) {
-				model.put("latlong",getAllLatLng(schoolservice.listLatLng(studentModel.getS_route_id())));
+				model.put("latlong",ControllerHelper.getAllLatLng(schoolservice.listLatLng(studentModel.getS_route_id()), studentservice));
 				model.put("route", routemodel);
 			}
-			model.put("students", getDriverTrackList(studentservice
-					.getDriverTrack(studentModel.getS_route_id())));
+			model.put("students", ControllerHelper.getDriverTrackList(studentservice
+					.getDriverTrack(studentModel.getS_route_id()), schoolservice));
 			System.out.println("Route id="+studentModel.getS_route_id());
-			//model.put("size_l",getDriverTrackList(studentservice.getDriverTrack(studentModel.getS_route_id())).size() - 1);
-			model.put("first_lat_lng", getDriverTrackList(studentservice.getDriverTrackLimit(studentModel.getS_route_id())));
+			//model.put("size_l",ControllerHelper.getDriverTrackList(studentservice.getDriverTrack(studentModel.getS_route_id())).size() - 1);
+			model.put("first_lat_lng", ControllerHelper.getDriverTrackList(studentservice.getDriverTrackLimit(studentModel.getS_route_id()), schoolservice));
 			
 			DriverModel DM=new DriverModel();
 			DM=schoolservice.getDriverByRouteId(studentModel.getS_route_id());
@@ -5448,7 +4563,8 @@ public class SuperAdmin {
 			
 		  //  model.put("driver_login_date",dam.getLogin_date());
 		    // model.put("driver_login_date",dam.getLogin_date());
-		    model.put("all_students", getStudentList(schoolservice.getStudentsByRouteId(studentModel.getS_route_id())));
+		    model.put("all_students",
+		    	ControllerHelper.	getStudentList(schoolservice.getStudentsByRouteId(studentModel.getS_route_id()),schoolservice));
 		    if(dam!=null)
 			   {
 				   model.put("driver_login_date",dam.getLogin_time());
@@ -5457,10 +4573,10 @@ public class SuperAdmin {
 				   model.put("driver_login_date","");
 			   }
 		    List<VechileBean> v=new ArrayList<VechileBean>();
-			v=getDriverVehicleList(schoolservice.getVechileByDriverId(DM.getDriver_id()));
+			v=ControllerHelper.getDriverVehicleList(schoolservice.getVechileByDriverId(DM.getDriver_id()));
 			if(v!=null)
 			{
-				  model.put("vehicle_details",getDriverVehicleList(schoolservice.getVechileByDriverId(DM.getDriver_id())));
+				  model.put("vehicle_details",ControllerHelper. getDriverVehicleList(schoolservice.getVechileByDriverId(DM.getDriver_id())));
 			}else
 			{
 				  model.put("vehicle_details","");
@@ -5477,96 +4593,7 @@ public class SuperAdmin {
 		return new ModelAndView("SuperAdmin/track_student", model);
 	}
 
-	/* Method for route latlng */
-	private List<DriverTrack> getDriverTrackList(
-			List<DriverTrackModel> tracklist) {
-		List<DriverTrack> beans = null;
-		if (tracklist != null && !tracklist.isEmpty()) {
-			beans = new ArrayList<DriverTrack>();
-			DriverTrack bean = null;
-			for (DriverTrackModel t_list : tracklist) {
-				bean = new DriverTrack();
-				bean.setRoute_id(t_list.getRoute_id());
-				bean.setLng(t_list.getLng());
-				bean.setLat(t_list.getLat());
-				bean.setTrack_date(t_list.getTrack_date());
-				bean.setTrack_id(t_list.getTrack_id());
-				bean.setSpeed(t_list.getSpeed());
-				RouteModel r=schoolservice.getRouteById(t_list.getRoute_id());
-				DriverModel driver_details=schoolservice.getDriverById(t_list.getDriver_id());
-				bean.setRoute_name(r.getRoute_name());
-				bean.setDriver_name(driver_details.getDriver_fname());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("No Data Available");
-		}
-		return beans;
-	}
-
-	/**
-	 * Function for chatting in super admin with school admin
-	 **/
-	@RequestMapping(value = "admin/chatting", method = RequestMethod.GET)
-	public ModelAndView chatting(
-			@ModelAttribute("command") StudentBean studentbean,
-			BindingResult result, ModelMap model, HttpServletRequest request) {
-		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole")!= "Admin")
-		{
-		 return new ModelAndView("redirect:/login.html");
-		}
-		int user_id = (Integer) session.getAttribute("user_id");
-		//model.put("school_admins",getSchoolAdminList(schoolservice.listSchoolAdmin(0), user_id));
-		model.put("school_admins",getSchoolAdminList(schoolservice.listSchoolAdminLatest(0), user_id));
-		model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
-		return new ModelAndView("SuperAdmin/chatting", model);
-	}
-
-	/* Method for get country list */
-	private List<LoginBean> getSchoolAdminList(List<LoginModel> users,
-			int user_id) {
-
-		List<LoginBean> beans = null;
-		if (users != null && !users.isEmpty()) {
-			beans = new ArrayList<LoginBean>();
-			LoginBean bean = null;
-			for (LoginModel user : users) {
-
-				bean = new LoginBean();
-				bean.setUser_id(user.getUser_id());
-				int count = schoolservice.getAllMessageCount(user_id,
-						user.getUser_id()).size();
-				bean.setP_status(count);
-				bean.setFirst_name(user.getFirst_name());
-				bean.setLast_name(user.getLast_name());
-				bean.setUser_name(user.getUser_name());
-				bean.setUser_email(user.getUser_email());
-				bean.setContact_number(user.getContact_number());
-				bean.setPermission(user.getPermission());
-				bean.setUser_pass(user.getUser_pass());
-				bean.setSms_checked_in_on(user.getSms_checked_in_on());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
 	
-	/**
-	 * Function for About us page content
-	 **/
-	@RequestMapping(value = "admin/homepage", method = RequestMethod.GET)
-	public ModelAndView homepage(
-			@ModelAttribute("command") StudentBean studentbean,
-			BindingResult result, ModelMap model, HttpServletRequest request) {
-		
-		PageContentModel page_content=schoolservice.getAboutUs(1);
-		model.addAttribute("content", page_content);
-		model.addAttribute("heading", "Update Homepage");
-		return new ModelAndView("SuperAdmin/update_homepage", model);
-	}
 	/**
 	 * Function for About us page content
 	 **/
@@ -5631,31 +4658,12 @@ public class SuperAdmin {
 		int school_id = (Integer) session.getAttribute("new_school_id");
 		model.put("school_details", schoolservice.getSchoolById(school_id));
 		model.put("class_info",
-				getAllClassList(schoolservice.getAllSchoolClasses(school_id)));
+				ControllerHelper.getAllClassList(schoolservice.getAllSchoolClasses(school_id)));
 		model.put("heading", "Manage Classes");
 		return new ModelAndView("SuperAdmin/all_classes", model);
 	}
 
-	/* Method for get country list */
-	private List<SchoolClasses> getAllClassList(List<SchoolClassesModel> classes) {
-
-		List<SchoolClasses> beans = null;
-		if (classes != null && !classes.isEmpty()) {
-			beans = new ArrayList<SchoolClasses>();
-			SchoolClasses bean = null;
-			for (SchoolClassesModel s_class : classes) {
-
-				bean = new SchoolClasses();
-				bean.setClass_id(s_class.getClass_id());
-				bean.setClass_name(s_class.getClass_name());
-				bean.setSchool_id(s_class.getSchool_id());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
+	
 
 	/**
 	 * Method for manage Add new class
@@ -5730,7 +4738,7 @@ public class SuperAdmin {
 		String current_url = parent.getUser_pass() + "?q=" + new String(encodedBytes);
 		String message = parent.getSchool_name();
 		Sms_api sms = new Sms_api();
-		sms.sendhttp(message, 0, contact_number);
+		sms.sendMsg(message,  contact_number);
 
 		return new ModelAndView("redirect:" + current_url);
 	}
@@ -5751,7 +4759,7 @@ public class SuperAdmin {
 		String current_url = "/admin/addDriver/";
 		String message = parent.getFirst_name();
 		Sms_api sms = new Sms_api();
-		sms.sendhttp(message, 0, contact_number);
+		sms.sendMsg(message,  contact_number);
 
 		return new ModelAndView("redirect:" + current_url);
 	}
@@ -5772,7 +4780,7 @@ public class SuperAdmin {
 		String current_url = "/admin/addParent/";
 		String message = parent.getFirst_name();
 		Sms_api sms = new Sms_api();
-		sms.sendhttp(message, 0, contact_number);
+		sms.sendMsg(message, contact_number);
 
 		return new ModelAndView("redirect:" + current_url);
 	}
@@ -5794,7 +4802,7 @@ public class SuperAdmin {
 		String message = parent.getFirst_name();
 		System.out.println(message);
 		Sms_api sms = new Sms_api();
-		sms.sendhttp(message, 0, contact_number);
+		sms.sendMsg(message, contact_number);
 		
 		return new ModelAndView("redirect:" + current_url);
 	}
@@ -5819,16 +4827,17 @@ public class SuperAdmin {
 			DriverModel drivermodel = schoolservice.getDriverById(driver_id);
 			int school_id = (Integer) session.getAttribute("new_school_id");
 			model.put("school_details", schoolservice.getSchoolById(school_id));
-		    model.put("students", getDriverTrackList(studentservice.getDriverTrack(drivermodel.getRoute_id())));
-		    model.put("all_students", getStudentList(schoolservice.getStudentsByRouteId(drivermodel.getRoute_id())));
+		    model.put("students", ControllerHelper.getDriverTrackList(studentservice.getDriverTrack(drivermodel.getRoute_id()), schoolservice));
+		    model.put("all_students",
+		    		ControllerHelper. getStudentList(schoolservice.getStudentsByRouteId(drivermodel.getRoute_id()),schoolservice));
 			 
-		    model.put("first_lat_lng", getDriverTrackList(studentservice.getDriverTrackLimit(drivermodel.getRoute_id())));
+		    model.put("first_lat_lng", ControllerHelper.getDriverTrackList(studentservice.getDriverTrackLimit(drivermodel.getRoute_id()), schoolservice));
 		    
-			model.put("size_l",getDriverTrackList(studentservice.getDriverTrack(drivermodel.getRoute_id())).size() - 1);
+			model.put("size_l",ControllerHelper.getDriverTrackList(studentservice.getDriverTrack(drivermodel.getRoute_id()), schoolservice).size() - 1);
 			RouteModel routemodel =new RouteModel();
 			routemodel = schoolservice.getRouteById(drivermodel.getRoute_id());
 			if (routemodel != null) {
-				model.put("latlong",getAllLatLng(schoolservice.listLatLng(drivermodel.getRoute_id())));
+				model.put("latlong",ControllerHelper.getAllLatLng(schoolservice.listLatLng(drivermodel.getRoute_id()), studentservice));
 				model.put("route", routemodel);
 			}
 			model.put("route_id", drivermodel.getRoute_id());
@@ -5844,10 +4853,10 @@ public class SuperAdmin {
 				   model.put("driver_login_date","");
 			   }
 			List<VechileBean> v=new ArrayList<VechileBean>();
-			v=getDriverVehicleList(schoolservice.getVechileByDriverId(driver_id));
+			v=ControllerHelper.getDriverVehicleList(schoolservice.getVechileByDriverId(driver_id));
 			if(v!=null)
 			{
-				  model.put("vehicle_details",getDriverVehicleList(schoolservice.getVechileByDriverId(driver_id)));
+				  model.put("vehicle_details",ControllerHelper.getDriverVehicleList(schoolservice.getVechileByDriverId(driver_id)));
 			}else
 			{
 				  model.put("vehicle_details","");
@@ -5865,10 +4874,11 @@ public class SuperAdmin {
 			RouteModel routemodel =new RouteModel();
 			routemodel = schoolservice.getRouteById(drivermodel.getRoute_id());
 			if (routemodel != null) {
-				model.put("latlong",getAllLatLng(schoolservice.listLatLng(drivermodel.getRoute_id())));
+				model.put("latlong",ControllerHelper.getAllLatLng(schoolservice.listLatLng(drivermodel.getRoute_id()), studentservice));
 				model.put("route", routemodel);
 			}
-			model.put("all_students", getStudentList(schoolservice.getStudentsByRouteId(drivermodel.getRoute_id())));
+			model.put("all_students", ControllerHelper.
+					getStudentList(schoolservice.getStudentsByRouteId(drivermodel.getRoute_id()) , schoolservice));
 			model.put("route_id", drivermodel.getRoute_id());
 			DriverAttendanceModel dam=new DriverAttendanceModel();
 		    dam=schoolservice.getTodayDriverAttendance(driver_id);
@@ -5885,10 +4895,10 @@ public class SuperAdmin {
 			model.put("error", "No data available");
 			//model.put("vehicle_details",getDriverVehicleList(schoolservice.getVechileByDriverId(driver_id)));
 			List<VechileBean> v=new ArrayList<VechileBean>();
-			v=getDriverVehicleList(schoolservice.getVechileByDriverId(driver_id));
+			v=ControllerHelper.getDriverVehicleList(schoolservice.getVechileByDriverId(driver_id));
 			if(v!=null)
 			{
-				  model.put("vehicle_details",getDriverVehicleList(schoolservice.getVechileByDriverId(driver_id)));
+				  model.put("vehicle_details",ControllerHelper.getDriverVehicleList(schoolservice.getVechileByDriverId(driver_id)));
 			}else
 			{
 				  model.put("vehicle_details","");
@@ -5928,8 +4938,8 @@ public class SuperAdmin {
 				Date date = new Date();
 				model.put("current_date", dateFormat.format(date));
 				model.put("all_holiday",
-						getHolidayList(schoolservice.getAllHoliday(school_id)));
-				model.put("all_present", getDriverPresentList(schoolservice
+						ControllerHelper.getHolidayList(schoolservice.getAllHoliday(school_id)));
+				model.put("all_present", ControllerHelper.getDriverPresentList(schoolservice
 						.getDriverAttendanceList(driver_id)));
 
 			} catch (Exception e) {
@@ -5996,8 +5006,8 @@ public class SuperAdmin {
 			Calendar mycal = new GregorianCalendar(iYear, iMonth, iDay);
 			int daysInMonth = mycal.getActualMaximum(Calendar.DAY_OF_MONTH);
 			System.out.println("Day in month="+daysInMonth);
-			List<HolidayBean> b=getHolidayList(schoolservice.getAllHolidayByMonth(school_id,month,year));
-			List<HolidayDeletedBean> c=getDeletedHolidayList(schoolservice.getAllDeletedHoliday(school_id));
+			List<HolidayBean> b=ControllerHelper.getHolidayList(schoolservice.getAllHolidayByMonth(school_id,month,year));
+			List<HolidayDeletedBean> c=ControllerHelper.getDeletedHolidayList(schoolservice.getAllDeletedHoliday(school_id));
 			try{
 			for(int i=0;i<b.size();i++)
 			{
@@ -6042,32 +5052,7 @@ public class SuperAdmin {
 		}
 
 	}
-	/**
-	 * Method for get all hodiday list
-	 * **/
-	private List<DriverAttendanceBean> getDriverPresentList(List<DriverAttendanceModel> presents) {
-
-		List<DriverAttendanceBean> beans = null;
-		if (presents != null && !presents.isEmpty()) {
-			beans = new ArrayList<DriverAttendanceBean>();
-			DriverAttendanceBean bean = null;
-			for (DriverAttendanceModel present : presents) {
-				bean = new DriverAttendanceBean();
-				bean.setA_id(present.getA_id());
-				bean.setDriver_id(present.getDriver_id());
-				bean.setLogin_date(present.getLogin_date());
-				bean.setLogin_time(present.getLogin_time());
-				bean.setLogout_time(present.getLogout_time());
-				bean.setStatus(present.getStatus());
-				bean.setLogin_evening(present.getLogin_evening());
-				bean.setLogout_evening(present.getLogout_evening());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
+	
 	/**
 	 *Method for manage country 
 	 **/
@@ -6082,7 +5067,7 @@ public class SuperAdmin {
 		}
 		try {
 			Map<String, Object> modelM = new HashMap<String, Object>();
-			modelM.put("countries", prepareListofBean(schoolservice.listCountry()));
+			modelM.put("countries",ControllerHelper. prepareListofBean(schoolservice.listCountry()));
 			modelM.put("heading", "Manage Country");
 			return new ModelAndView("SuperAdmin/all_country", modelM);
 		} catch (Exception e) {
@@ -6223,8 +5208,8 @@ public class SuperAdmin {
 		}
 		try {
 			Map<String, Object> modelM = new HashMap<String, Object>();
-			modelM.put("countries", prepareListofBean(schoolservice.listCountry()));
-			modelM.put("towns", prepareListofCities(schoolservice.listCities()));
+			modelM.put("countries",ControllerHelper. prepareListofBean(schoolservice.listCountry()));
+			modelM.put("towns",ControllerHelper. prepareListofCities(schoolservice.listCities()));
 			modelM.put("heading", "Manage Towns");
 			return new ModelAndView("SuperAdmin/all_cities", modelM);
 		} catch (Exception e) {
@@ -6232,25 +5217,7 @@ public class SuperAdmin {
 		}
 	
 	}
-	/* Method for get country list */
-	private List<CityBean> prepareListofCities(List<CityModel> cities) {
-
-		List<CityBean> beans = null;
-		if (cities != null && !cities.isEmpty()) {
-			beans = new ArrayList<CityBean>();
-			CityBean bean = null;
-			for (CityModel city : cities) {
-				bean = new CityBean();
-				bean.setCity_id(city.getCity_id());
-				bean.setCity_name(city.getCity_name());
-				bean.setCountry_id(city.getCountry_id());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
+	
 	/**
 	 *Function for add new country with post method 
 	 **/
@@ -6264,7 +5231,7 @@ public class SuperAdmin {
 		}
 		 
 		model.put("heading", "Add City");
-		model.put("countries", prepareListofBean(schoolservice.listCountry()));
+		model.put("countries",ControllerHelper. prepareListofBean(schoolservice.listCountry()));
 		try {
 			
 			CityModel found = schoolservice.cityCheck(city.getCity_name(),city.getCountry_id());
@@ -6300,7 +5267,7 @@ public class SuperAdmin {
 		}
 		Map<String, Object> model=new HashMap<String,Object>();
 		model.put("heading", "Add City");
-		model.put("countries", prepareListofBean(schoolservice.listCountry()));
+		model.put("countries", ControllerHelper.prepareListofBean(schoolservice.listCountry()));
 		return new ModelAndView("SuperAdmin/add_cities", model);
 	}
 	/**
@@ -6319,7 +5286,7 @@ public class SuperAdmin {
 		byte[] decodedBytes = Base64.decodeBase64(""+q+"");
 		int c_id=Integer.parseInt(new String(decodedBytes));
 		model.put("city_details",schoolservice.getCityById(c_id));
-		model.put("countries", prepareListofBean(schoolservice.listCountry()));
+		model.put("countries",ControllerHelper. prepareListofBean(schoolservice.listCountry()));
 		return new ModelAndView("SuperAdmin/add_cities",model);
 		}catch(Exception e)
 		{
@@ -6347,7 +5314,7 @@ public class SuperAdmin {
 			beans.setCountry_id(city.getCountry_id());
 			schoolservice.editCityById(c_id, beans);
 			model.put("city_details",schoolservice.getCityById(c_id));
-			model.put("countries", prepareListofBean(schoolservice.listCountry()));
+			model.put("countries", ControllerHelper.prepareListofBean(schoolservice.listCountry()));
 			model.put("success", "Town updated successfully!");
 			return new ModelAndView("SuperAdmin/add_cities",model);
 		}catch(Exception e)
@@ -6365,62 +5332,8 @@ public class SuperAdmin {
 		return new ModelAndView("redirect:manageTown");
 	}
 	
-	/**
-	 * Method For get all schools
-	 **/
-	private List<VehicleDocBean> prepareListOfVehicleDoc(List<VehicleDocModel> vehicles) {
-
-		List<VehicleDocBean> beans = null;
-		if (vehicles != null && !vehicles.isEmpty()) {
-			beans = new ArrayList<VehicleDocBean>();
-			VehicleDocBean bean = null;
-			for (VehicleDocModel vehicle : vehicles) {
-				bean = new VehicleDocBean();
-				bean.setInsurance_card_copy(vehicle.getInsurance_card_copy());
-				bean.setInsurance_document_expiry(vehicle.getInsurance_document_expiry());
-				bean.setInsurance_document_name(vehicle.getInsurance_document_name());
-				bean.setRemind_day(vehicle.getRemind_day());
-				bean.setSchool_id(vehicle.getSchool_id());
-				bean.setV_doc_id(vehicle.getV_doc_id());
-				bean.setV_id(vehicle.getV_id());
-				bean.setStatus(vehicle.getStatus());
-				bean.setInsurance_end_date(vehicle.getInsurance_end_date());
-				beans.add(bean);
-			}
-		} else {
-			//System.out.println("empty Result");
-		}
-		return beans;
-
-	}
-	/**
-	 * Method For get all schools
-	 **/
-	private List<DriverDocBean> prepareListOfDriverDoc(List<DriverDocModel> drivers) {
-
-		List<DriverDocBean> beans = null;
-		if (drivers != null && !drivers.isEmpty()) {
-			beans = new ArrayList<DriverDocBean>();
-			DriverDocBean bean = null;
-			for (DriverDocModel vehicle : drivers) {
-				bean = new DriverDocBean();
-				bean.setInsurance_card_copy(vehicle.getInsurance_card_copy());
-				bean.setInsurance_document_expiry(vehicle.getInsurance_document_expiry());
-				bean.setInsurance_document_name(vehicle.getInsurance_document_name());
-				bean.setRemind_day(vehicle.getRemind_day());
-				bean.setSchool_id(vehicle.getSchool_id());
-				bean.setV_doc_id(vehicle.getV_doc_id());
-				bean.setV_id(vehicle.getV_id());
-				bean.setStatus(vehicle.getStatus());
-				bean.setInsurance_end_date(vehicle.getInsurance_end_date());
-				beans.add(bean);
-			}
-		} else {
-			//System.out.println("empty Result");
-		}
-		return beans;
-
-	}
+	
+	
 	/**
 	 *Method for delete country 
 	 **/
@@ -6481,7 +5394,7 @@ public class SuperAdmin {
 		}
 		try{
 			model.put("heading", "Manage Nationality");
-			model.put("nationlity", prepareNationalityList(schoolservice.getAllNationlity()));
+			model.put("nationlity",ControllerHelper.prepareNationalityList(schoolservice.getAllNationlity()));
 			return new ModelAndView("SuperAdmin/all_nationality",model);
 		}catch(Exception e)
 		{
@@ -6490,24 +5403,7 @@ public class SuperAdmin {
 		}
 		 
 	}
-//	Method for iterate nationlity list
-	public List<NationlityBean> prepareNationalityList(List<NationlityModel> nationModel)
-	{
-		List<NationlityBean> beans = null;
-		if (nationModel != null && !nationModel.isEmpty()) {
-			beans = new ArrayList<NationlityBean>();
-			NationlityBean bean = null;
-			for (NationlityModel nation : nationModel) {
-				bean = new NationlityBean();
-				bean.setName(nation.getName());
-				bean.setNational_id(nation.getNational_id());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
+
 	/**
 	 * Function for edit student
 	 **/
@@ -6603,7 +5499,7 @@ public class SuperAdmin {
 			int day2 = Integer.parseInt(parts2[2]); // 034556
 			
 			System.out.println(holidaybean.getDay());
-			List<LocalDate> dates = getWeekendDates(new LocalDate(year1,month1,day1), new LocalDate(year2,month2,day2),holidaybean.getDay());
+			List<LocalDate> dates = ControllerHelper.getWeekendDates(new LocalDate(year1,month1,day1), new LocalDate(year2,month2,day2),holidaybean.getDay());
 	        for (LocalDate date : dates)
 	        {
 	        	System.out.println(date);
@@ -6637,8 +5533,8 @@ public class SuperAdmin {
 		model.put("school_id", school_id);
 		model.put("current_date", dateFormat.format(date));
 		model.put("all_holiday",
-				getHolidayList(schoolservice.getAllHoliday(school_id)));
-		model.put("holidays", getHolidays(frontService.getHolidayByMonth(month,
+				ControllerHelper.getHolidayList(schoolservice.getAllHoliday(school_id)));
+		model.put("holidays", ControllerHelper.getHolidays(frontService.getHolidayByMonth(month,
 				year, school_id)));
 		model.put("school_details", schoolservice.getSchoolById(school_id));
 		return new ModelAndView("redirect:viewCalendar");
@@ -6650,71 +5546,6 @@ public class SuperAdmin {
 		 */
 
 	}
-		@SuppressWarnings("unused")
-		private static List<LocalDate> getWeekendDates
-		    (LocalDate start, LocalDate end,String dayName)
-		{
-		    List<LocalDate> result = new ArrayList<LocalDate>();
-		    for (LocalDate date = start;
-		         date.isBefore(end);
-		         date = date.plusDays(1))
-		    {
-		        int day = (Integer)date.getDayOfWeek();
-		        // These could be passed in...
-		        if(dayName.equals("SATURDAY"))
-		        {
-		        	if (day == DateTimeConstants.SATURDAY)
-			        {
-			            result.add(date);
-			        }
-		        }
-		        if(dayName.equals("SUNDAY"))
-		        {
-		        	if (day == DateTimeConstants.SUNDAY)
-			        {
-			            result.add(date);
-			        }
-		        }
-		        if(dayName.equals("MONDAY"))
-		        {
-		        	if (day == DateTimeConstants.MONDAY)
-			        {
-			            result.add(date);
-			        }
-		        }
-		        if(dayName.equals("TUESDAY"))
-		        {
-		        	if (day == DateTimeConstants.TUESDAY)
-			        {
-			            result.add(date);
-			        }
-		        }
-		        if(dayName.equals("WEDNESDAY"))
-		        {
-		        	if (day == DateTimeConstants.WEDNESDAY)
-			        {
-			            result.add(date);
-			        }
-		        }
-		        if(dayName.equals("THURSDAY"))
-		        {
-		        	if (day == DateTimeConstants.THURSDAY)
-			        {
-			            result.add(date);
-			        }
-		        }
-		        if(dayName.equals("FRIDAY"))
-		        {
-		        	if (day == DateTimeConstants.FRIDAY)
-			        {
-			            result.add(date);
-			        }
-		        }
-		        
-		        
-		    }
-		    return result;
-		} 
 		
 		
 		@RequestMapping(value = "admin/addAdminWeekEndHoliday", method = RequestMethod.POST)
@@ -6742,7 +5573,7 @@ public class SuperAdmin {
 				int day2 = Integer.parseInt(parts2[2]); // 034556
 				
 				System.out.println(holidaybean.getDay());
-				List<LocalDate> dates = getWeekendDates(new LocalDate(year1,month1,day1), new LocalDate(year2,month2,day2),holidaybean.getDay());
+				List<LocalDate> dates = ControllerHelper.getWeekendDates(new LocalDate(year1,month1,day1), new LocalDate(year2,month2,day2),holidaybean.getDay());
 		        for (LocalDate date : dates)
 		        {
 		        	int school_id = 0;
@@ -6777,8 +5608,8 @@ public class SuperAdmin {
 			model.put("school_id", school_id);
 			model.put("current_date", dateFormat.format(date));
 			model.put("all_holiday",
-					getHolidayList(schoolservice.getAllHoliday(school_id)));
-			model.put("holidays", getHolidays(frontService.getHolidayByMonth(month,
+					ControllerHelper.getHolidayList(schoolservice.getAllHoliday(school_id)));
+			model.put("holidays", ControllerHelper.getHolidays(frontService.getHolidayByMonth(month,
 					year, school_id)));
 			return new ModelAndView("redirect:viewAdminCalendar");
 
@@ -6820,29 +5651,7 @@ public class SuperAdmin {
 			}
 		}
 
-		
-		/**
-		 * Method for get all hodiday list
-		 * **/
-		 
-		private List<HolidayDeletedBean> getDeletedHolidayList(List<HolidayDeletedModel> holiday) {
-
-			List<HolidayDeletedBean> beans = null;
-			if (holiday != null && !holiday.isEmpty()) {
-				beans = new ArrayList<HolidayDeletedBean>();
-				HolidayDeletedBean bean = null;
-				for (HolidayDeletedModel holi : holiday) {
-					bean = new HolidayDeletedBean();
-					bean.setDel_id(holi.getDel_id());
-					bean.setHoliday_id(holi.getHoliday_id());
-					bean.setSchool_id(holi.getSchool_id());
-					beans.add(bean);
-				}
-			} else {
-				System.out.println("empty");
-			}
-			return beans;
-		}
+	
 		/**
 		 * Function for edit parent
 		 **/
@@ -6951,7 +5760,7 @@ public class SuperAdmin {
 				int total=0;
 				for (RouteModel st : routes) {
 					List<DriverTrack> driver_lat_lng=new ArrayList<DriverTrack>();	
-					driver_lat_lng=getDriverTrackList(studentservice.getDriverTrackLimitOne(st.getRoute_id()));
+					driver_lat_lng=ControllerHelper.getDriverTrackList(studentservice.getDriverTrackLimitOne(st.getRoute_id()), schoolservice);
 					
 					if(driver_lat_lng!=null)
 					{ 	
@@ -6963,11 +5772,11 @@ public class SuperAdmin {
 				}
 				 
 				
-				model.put("drivers",getDriversList(schoolservice.listDriver(school_id)));
+				model.put("drivers",ControllerHelper. getDriversList(schoolservice.listDriver(school_id),schoolservice));
 				model.put("school_id",school_id);
 				model.put("school_details", schoolservice.getSchoolById(school_id));
-			    model.put("students", getDriverTrackList(studentservice.getDriverTrack(0)));
-				model.put("first_lat_lng", getDriverTrackList(studentservice.getDriverTrackLimit(0)));
+			    model.put("students", ControllerHelper.getDriverTrackList(studentservice.getDriverTrack(0), schoolservice));
+				model.put("first_lat_lng", ControllerHelper.getDriverTrackList(studentservice.getDriverTrackLimit(0), schoolservice));
 				
 				if(map.isEmpty())
 				{
@@ -6987,11 +5796,11 @@ public class SuperAdmin {
 					model.put("lat_lng", map);
 				}
 				model.put("size_l",total);
-				//model.put("size_l",getDriverTrackList(studentservice.getDriverTrack(0)).size() - 1);
+				//model.put("size_l",ControllerHelper.getDriverTrackList(studentservice.getDriverTrack(0)).size() - 1);
 				RouteModel routemodel =new RouteModel();
 				routemodel = schoolservice.getRouteById(0);
 				if (routemodel != null) {
-					model.put("latlong",getAllLatLng(schoolservice.listLatLng(0)));
+					model.put("latlong",ControllerHelper.getAllLatLng(schoolservice.listLatLng(0), studentservice));
 					model.put("route", routemodel);
 				}
 				//model.put("route_id", drivermodel.getRoute_id());
@@ -7002,10 +5811,10 @@ public class SuperAdmin {
 				RouteModel routemodel =new RouteModel();
 				HttpSession session = request.getSession();
 				int school_id = (Integer) session.getAttribute("new_school_id");
-				model.put("drivers",getDriversList(schoolservice.listDriver(school_id)));
+				model.put("drivers", ControllerHelper. getDriversList(schoolservice.listDriver(school_id), schoolservice));
 				routemodel = schoolservice.getRouteById(0);
 				if (routemodel != null) {
-					model.put("latlong",getAllLatLng(schoolservice.listLatLng(0)));
+					model.put("latlong",ControllerHelper.getAllLatLng(schoolservice.listLatLng(0), studentservice));
 					model.put("route", routemodel);
 				}
 				model.put("route_id", 0);
@@ -7031,9 +5840,9 @@ public class SuperAdmin {
 			int user_id = (Integer) session.getAttribute("user_id");
 			model.put("User_name", "SuperAdmin");
 			model.put("User_id", user_id);
-			//model.put("school_admins",getSchoolAdminList(schoolservice.listSchoolAdmin(0), user_id));
-			model.put("school_admins",getSchoolAdminList(schoolservice.listSchoolAdminLatest(0), user_id));
-			model.put("schools", prepareListOfSchool(schoolservice.listSchools()));
+			//model.put("school_admins",ControllerHelper.getSchoolAdminList(schoolservice.listSchoolAdmin(0), user_id));
+			model.put("school_admins",ControllerHelper.getSchoolAdminList(schoolservice.listSchoolAdminLatest(0), user_id, schoolservice));
+			model.put("schools",ControllerHelper. prepareListOfSchool(schoolservice.listSchools()));
 			return new ModelAndView("SuperAdmin/chatting_socket",model);
 		}
 		/**
@@ -7058,14 +5867,14 @@ public class SuperAdmin {
 				model.put("heading", "View Vehicle");
 				model.put("vechileBean", vehiclemodel);
 				model.put("schools",
-						prepareListOfSchool(schoolservice.listSchools()));
+						ControllerHelper.prepareListOfSchool(schoolservice.listSchools()));
 				if (session.getAttribute("userRole")!= "Admin")
 				{
 				 return new ModelAndView("redirect:/login.html");
 				}
 				int school_id = (Integer) session.getAttribute("new_school_id");
 				model.put("school_details", schoolservice.getSchoolById(school_id));
-				model.put("documents", prepareListOfVehicleDoc(schoolservice.getVehicleDocument(vehiclemodel.getVechile_id())));
+				model.put("documents",ControllerHelper. prepareListOfVehicleDoc(schoolservice.getVehicleDocument(vehiclemodel.getVechile_id())));
 				
 				String ed=request.getParameter("v");
 				if(ed != null)
@@ -7096,30 +5905,13 @@ public class SuperAdmin {
 			}
 			modelH.addAttribute("heading", "Manage Relationship");
 			Map<String, Object> model = new HashMap<String, Object>();
-			model.put("relationship",getRelationshipList(schoolservice.listRelationship()));
+			model.put("relationship",ControllerHelper. getRelationshipList(schoolservice.listRelationship()));
 			return new ModelAndView("SuperAdmin/all_relationship", model);
 		}
 		
-		/* Method for get relationship list */
-		private List<relationshipBean> getRelationshipList(List<relationshipModel> relationships) {
-
-			List<relationshipBean> beans = null;
-			if (relationships != null && !relationships.isEmpty()) {
-				beans = new ArrayList<relationshipBean>();
-				relationshipBean bean = null;
-				for (relationshipModel rel : relationships) {
-					bean = new relationshipBean();
-					bean.setR_id(rel.getR_id());
-					bean.setR_title(rel.getR_title());
-					beans.add(bean);
-				}
-			} else {
-				System.out.println("empty");
-			}
-			return beans;
-		}
+		
 		@RequestMapping(value = "admin/addRelationship", method = RequestMethod.GET)
-		public ModelAndView addRelationship(
+        public ModelAndView addRelationship(
 				@ModelAttribute("command") relationshipBean relationship_bean,
 				BindingResult result, ModelMap modelH, HttpServletRequest request) {
 			HttpSession session = request.getSession();
@@ -7253,7 +6045,7 @@ public class SuperAdmin {
 				{
 				 return new ModelAndView("redirect:/login.html");
 				}
-				model.addAttribute("sliders", iterateAllSlider(schoolservice.getAllSlider()));
+				model.addAttribute("sliders", ControllerHelper.iterateAllSlider(schoolservice.getAllSlider()));
 				
 			}catch(Exception e)
 			{
@@ -7264,29 +6056,7 @@ public class SuperAdmin {
 		
 		
 		
-//	 Method for iterate sliders
-		public List<SliderBean> iterateAllSlider(List<SliderModel> sliders)
-		{
-			List<SliderBean> slider_bean=null;
-			if(sliders!=null &&  !sliders.isEmpty())
-			{
-				slider_bean=new ArrayList<SliderBean>();
-				for(SliderModel slider : sliders)
-				{
-					SliderBean s_bean=new SliderBean();
-					s_bean.setSlider_id(slider.getSlider_id());
-					s_bean.setSlider_type(slider.getSlider_type());
-					s_bean.setSlider_image(slider.getSlider_image());
-					slider_bean.add(s_bean);
-				}
-			}else
-			{
-				slider_bean.add(null);
-			}
-			return slider_bean;
-			
-			
-		}
+
 		/**
 		 * @access public
 		 * Method for add slider 
@@ -7331,8 +6101,8 @@ public class SuperAdmin {
 					String part2 = parts[1]; // 034556
 					int rand = RandomUtils.nextInt();
 					imageName =  rand + ".png";
-					String directory = request.getServletContext().getRealPath(
-							Assets.SLIDER_IMAGES + imageName);
+					String directory = 
+							Assets.SLIDER_IMAGES_SYS + imageName;
 				
 					byte[] imageByteArray = Base64.decodeBase64(part2);
 					// Write a image byte array into file system
@@ -7416,8 +6186,7 @@ public class SuperAdmin {
 					String part2 = parts[1]; // 034556
 					int rand = RandomUtils.nextInt();
 					imageName =  rand + ".png";
-					String directory = request.getServletContext().getRealPath(
-							Assets.SLIDER_IMAGES + imageName);
+					String directory =Assets.SLIDER_IMAGES_SYS + imageName;
 				
 					byte[] imageByteArray = Base64.decodeBase64(part2);
 					// Write a image byte array into file system
@@ -7480,7 +6249,7 @@ public class SuperAdmin {
 				{
 				 return new ModelAndView("redirect:/login.html");
 				}
-				model.addAttribute("pages", iterateAllPage(schoolservice.getAllPage(0)));
+				model.addAttribute("pages", ControllerHelper.iterateAllPage(schoolservice.getAllPage(0)));
 				
 			}catch(Exception e)
 			{
@@ -7489,28 +6258,7 @@ public class SuperAdmin {
 			return new ModelAndView("SuperAdmin/manage_home_section_two",model);
 		}
 		
-//		Iterate all pages
-		public List<PageBean> iterateAllPage(List<PageModel> page_model)
-		{
-			List<PageBean> page_bean=null;
-			if(page_model!=null &&  !page_model.isEmpty())
-			{
-				page_bean=new ArrayList<PageBean>();
-				for(PageModel p_model : page_model)
-				{
-					PageBean s_bean=new PageBean();
-					s_bean.setPage_id(p_model.getPage_id());
-					s_bean.setPage_name(p_model.getPage_name());
-					s_bean.setPage_title(p_model.getPage_title());
-					s_bean.setPage_desc(p_model.getPage_desc());
-					page_bean.add(s_bean);
-				}
-			}else
-			{
-				page_bean.add(null);
-			}
-			return page_bean;
-		}
+//		
 		/**
 		 * Function for edit Slider
 		 **/
@@ -7596,7 +6344,7 @@ public class SuperAdmin {
 				{
 				 return new ModelAndView("redirect:/login.html");
 				}
-				model.addAttribute("pages", iterateAllPage(schoolservice.getAllPage(1)));
+				model.addAttribute("pages", ControllerHelper.iterateAllPage(schoolservice.getAllPage(1)));
 				
 			}catch(Exception e)
 			{
@@ -7664,8 +6412,7 @@ public class SuperAdmin {
 					String part2 = parts[1]; // 034556
 					int rand = RandomUtils.nextInt();
 					imageName =  rand + ".png";
-					String directory = request.getServletContext().getRealPath(
-							Assets.SLIDER_IMAGES + imageName);
+					String directory = Assets.SLIDER_IMAGES_SYS + imageName ;
 				
 					byte[] imageByteArray = Base64.decodeBase64(part2);
 					// Write a image byte array into file system
@@ -7778,7 +6525,7 @@ public class SuperAdmin {
 				{
 				 return new ModelAndView("redirect:/login.html");
 				}
-				model.addAttribute("pages", iterateAllPage(schoolservice.getAllPage(3)));
+				model.addAttribute("pages", ControllerHelper.iterateAllPage(schoolservice.getAllPage(3)));
 				
 			}catch(Exception e)
 			{
@@ -7870,7 +6617,7 @@ public class SuperAdmin {
 				{
 				 return new ModelAndView("redirect:/login.html");
 				}
-				model.addAttribute("features", iterateAllFeatures(schoolservice.getAllFeatures()));
+				model.addAttribute("features", ControllerHelper. iterateAllFeatures(schoolservice.getAllFeatures()));
 				
 			}catch(Exception e)
 			{
@@ -7878,25 +6625,7 @@ public class SuperAdmin {
 			}
 			return new ModelAndView("SuperAdmin/manage_features",model);
 		}
-//		Iterate all pages
-		public List<FeaturesBean> iterateAllFeatures(List<FeaturesModel> feature_model)
-		{
-			List<FeaturesBean> feature_bean=null;
-			if(feature_model!=null &&  !feature_model.isEmpty())
-			{
-				feature_bean=new ArrayList<FeaturesBean>();
-				for(FeaturesModel p_model : feature_model)
-				{
-					FeaturesBean s_bean=new FeaturesBean();
-					s_bean.setFeatures_id(p_model.getFeatures_id());
-					s_bean.setTitle(p_model.getTitle());
-					s_bean.setContent(p_model.getContent());
-					s_bean.setImage_path(p_model.getImage_path());
-					feature_bean.add(s_bean);
-				}
-			}
-			return feature_bean;
-		}
+
 		
 		/**
 		 * @access public
@@ -7907,8 +6636,7 @@ public class SuperAdmin {
 		{
 			try{
 				HttpSession session=request.getSession();
-				if(session.getAttribute("userRole")!="Admin")
-				{
+				if(session.getAttribute("userRole")!="Admin") {
 					return new ModelAndView("redirect:/login.html");
 				}
 				model.addAttribute("heading", "Add Feature");
@@ -7938,6 +6666,11 @@ public class SuperAdmin {
 				feature_model.setTitle(s_bean.getTitle());
 				feature_model.setCategory_type(s_bean.getCategory_type());
 				feature_model.setContent(s_bean.getContent());
+				
+				feature_model.setTitle_ar(s_bean.getTitle_ar());
+				feature_model.setContent_ar(s_bean.getContent_ar());
+
+				
 				String imageName="";
 				if (s_bean.getImage_path() != "" && !s_bean.getImage_path().equals("")) {
 					String filePath = s_bean.getImage_path();
@@ -7945,8 +6678,7 @@ public class SuperAdmin {
 					String part2 = parts[1]; // 034556
 					int rand = RandomUtils.nextInt();
 					imageName =  rand + ".png";
-					String directory = request.getServletContext().getRealPath(
-							Assets.FEATURES_IMAGE + imageName);
+					String directory =  Assets.FEATURES_IMAGE_SYS + imageName ;
 				
 					byte[] imageByteArray = Base64.decodeBase64(part2);
 					// Write a image byte array into file system
@@ -7958,9 +6690,8 @@ public class SuperAdmin {
 					imageName = "";
 				}
 				feature_model.setImage_path(imageName);
-				feature_model.setTitle_ar("");
-				feature_model.setContent_ar("");
-				feature_model.setImage_path_ar("");
+				feature_model.setImage_path_ar(imageName);
+
 				schoolservice.addFeature(feature_model);
 				
 				model.addAttribute("success", "Feature added successfully");
@@ -8030,19 +6761,20 @@ public class SuperAdmin {
 				feature_model.setTitle(s_bean.getTitle());
 				feature_model.setCategory_type(s_bean.getCategory_type());
 				feature_model.setContent(s_bean.getContent());
-				String imageName="";
-				if(s_bean.getImage_path()!=null)
-				{
-					
 				
-				if (s_bean.getImage_path() != "" && !s_bean.getImage_path().equals("")) {
+				feature_model.setTitle_ar(s_bean.getTitle_ar());
+				feature_model.setContent_ar(s_bean.getContent_ar());
+
+				String imageName="";
+				
+				if (s_bean.getImage_path()!=null &&  s_bean.getImage_path() != "" && !s_bean.getImage_path().equals("")) {
+					
 					String filePath = s_bean.getImage_path();
 					String[] parts = filePath.split("base64,");
 					String part2 = parts[1]; // 034556
 					int rand = RandomUtils.nextInt();
 					imageName =  rand + ".png";
-					String directory = request.getServletContext().getRealPath(
-							Assets.FEATURES_IMAGE + imageName);
+					String directory =  Assets.FEATURES_IMAGE_SYS + imageName ;
 				
 					byte[] imageByteArray = Base64.decodeBase64(part2);
 					// Write a image byte array into file system
@@ -8050,9 +6782,8 @@ public class SuperAdmin {
 							directory);
 					imageOutFile.write(imageByteArray);
 					imageOutFile.close();
-				} else {
-					imageName = feature_model1.getImage_path();
-				}
+					
+				
 				}else {
 					imageName = feature_model1.getImage_path();
 				}
@@ -8100,7 +6831,7 @@ public class SuperAdmin {
 				{
 				 return new ModelAndView("redirect:/login.html");
 				}
-				model.addAttribute("faq", iterateAllFaq(schoolservice.getAllFaq()));
+				model.addAttribute("faq",ControllerHelper. iterateAllFaq(schoolservice.getAllFaq()));
 				
 			}catch(Exception e)
 			{
@@ -8109,25 +6840,6 @@ public class SuperAdmin {
 			return new ModelAndView("SuperAdmin/manage_faq",model);
 		}
 		
-//		Iterate all pages
-		public List<FaqBean> iterateAllFaq(List<FaqModel> faq_model)
-		{
-			List<FaqBean> feature_bean=null;
-			if(faq_model!=null &&  !faq_model.isEmpty())
-			{
-				feature_bean=new ArrayList<FaqBean>();
-				for(FaqModel p_model : faq_model)
-				{
-					FaqBean s_bean=new FaqBean();
-					s_bean.setFaq_id(p_model.getFaq_id());
-					s_bean.setCategory(p_model.getCategory());
-					s_bean.setQuestion(p_model.getQuestion());
-					s_bean.setAnswer(p_model.getAnswer());
-					feature_bean.add(s_bean);
-				}
-			}
-			return feature_bean;
-		}
 		/**
 		 * @access public
 		 * Method for add faq 
@@ -8322,30 +7034,13 @@ public class SuperAdmin {
 				{
 				 return new ModelAndView("redirect:/login.html");
 				}
-				model.addAttribute("faq", iterateAllSubscribers(schoolservice.getAllSubscribers()));
+				model.addAttribute("faq", ControllerHelper. iterateAllSubscribers(schoolservice.getAllSubscribers()));
 				
 			}catch(Exception e)
 			{
 				e.printStackTrace();
 			}
 			return new ModelAndView("SuperAdmin/manage_subscribers",model);
-		}
-//		Iterate all Subscribers
-		public List<SubscriberBean> iterateAllSubscribers(List<SubscriberModel> faq_model)
-		{
-			List<SubscriberBean> feature_bean=null;
-			if(faq_model!=null &&  !faq_model.isEmpty())
-			{
-				feature_bean=new ArrayList<SubscriberBean>();
-				for(SubscriberModel p_model : faq_model)
-				{
-					SubscriberBean s_bean=new SubscriberBean();
-					s_bean.setSub_id(p_model.getSub_id());
-					s_bean.setEmail(p_model.getEmail());
-					feature_bean.add(s_bean);
-				}
-			}
-			return feature_bean;
 		}
 		
 		/**
@@ -8511,7 +7206,7 @@ public class SuperAdmin {
 					//	send_email.sendEmail(asm.getEmail_id(), msg, "Tracking Bus",asm.getPassword());
 						send_email.sendEmailPromotional(s_model.getEmail(), msg, "Tracking Bus", asm.getPassword(), asm.getEmail_id());
 						//schoolservice.addContactDetails(c_model);
-						model.addAttribute("faq", iterateAllSubscribers(schoolservice.getAllSubscribers()));
+						model.addAttribute("faq",ControllerHelper. iterateAllSubscribers(schoolservice.getAllSubscribers()));
 						model.addAttribute("success", "Email sent successfully");
 				}
 				//return new ModelAndView("redirect:manageSubscrubers");
@@ -8536,7 +7231,7 @@ public class SuperAdmin {
 				{
 				 return new ModelAndView("redirect:/login.html");
 				}
-				model.addAttribute("faq", iterateAllSubscribers(schoolservice.getAllSubscribers()));
+				model.addAttribute("faq",ControllerHelper. iterateAllSubscribers(schoolservice.getAllSubscribers()));
 				
 			}catch(Exception e)
 			{
@@ -8547,25 +7242,6 @@ public class SuperAdmin {
 
 		}
 		
-		/* Method for route latlng */
-		private List<VechileBean> getDriverVehicleList(
-				List<VehicleModel> tracklist) {
-			List<VechileBean> beans = null;
-			if (tracklist != null && !tracklist.isEmpty()) {
-				beans = new ArrayList<VechileBean>();
-				VechileBean bean = null;
-				for (VehicleModel t_list : tracklist) {
-					bean = new VechileBean();
-					bean.setBus_number(t_list.getBus_number());
-					bean.setVechile_id(t_list.getVechile_id());
-					bean.setVehile_name(t_list.getVehile_name());
-					beans.add(bean);
-				}
-			} else {
-				System.out.println("No Data Available");
-			}
-			return beans;
-		}
 		
 		/**
 		 *Method for manage contact page category 
@@ -8580,7 +7256,7 @@ public class SuperAdmin {
 				{
 				 return new ModelAndView("redirect:/login.html");
 				}
-				model.addAttribute("categories", iterateAllCategory(schoolservice.getAllContactCategory()));
+				model.addAttribute("categories", ControllerHelper. iterateAllCategory(schoolservice.getAllContactCategory()));
 				
 			}catch(Exception e)
 			{
@@ -8588,29 +7264,7 @@ public class SuperAdmin {
 			}
 			return new ModelAndView("SuperAdmin/manage_category",model);
 		}
-		//Method for iterate sliders
-		public List<CategoryContactBean> iterateAllCategory(List<CategoryContactModel> categoryModel)
-		{
-			List<CategoryContactBean> category_bean=null;
-			if(categoryModel!=null &&  !categoryModel.isEmpty())
-			{
-				category_bean=new ArrayList<CategoryContactBean>();
-				for(CategoryContactModel category_contact : categoryModel)
-				{
-					CategoryContactBean s_bean=new CategoryContactBean();
-					s_bean.setC_cat_id(category_contact.getC_cat_id());
-					s_bean.setCategory_en(category_contact.getCategory_en());
-					s_bean.setCategory_ar(category_contact.getCategory_ar());
-					category_bean.add(s_bean);
-				}
-			}else
-			{
-				category_bean.add(null);
-			}
-			return category_bean;
-			
-			
-		}
+		
 		/**
 		 * @access public
 		 * Method for add slider 

@@ -116,7 +116,7 @@
 						<label class="col-sm-4 control-label">Expiry Date :</label>
 						<div class="col-sm-8">
 							<input type="text" name="insurance_document_expiry[<%=j1%>]"
-								value="${doc.insurance_document_expiry}" id="insurance_document_expiry<%=j1%>"
+								 onchange="getDateDiff(<%=j1%>);" value="${doc.insurance_document_expiry}" id="insurance_document_expiry<%=j1%>"
 								class="form-control d">
 						</div>
 					</div><!-- form-group -->
@@ -124,7 +124,7 @@
 						<label class="col-sm-4 control-label">Remind Date :</label>
 						<div class="col-sm-8">
 							<input type="text" name="insurance_end_date_e[<%=j1%>]"
-								value="${doc.insurance_end_date}" id="insurance_end_date_e<%=j1%>"
+								 onchange="getDateDiff(<%=j1%>);" value="${doc.insurance_end_date}" id="insurance_end_date_e<%=j1%>"
 								class="form-control d">
 						</div>
 					</div><!-- form-group -->
@@ -381,7 +381,7 @@
 												x++; //text box increment
 												y++;
 												$(wrapper)
-														.append('<div class="panel section_repeat" id=""><span class="col-sm-12"><a href="#" style="float:right;padding:0 14px 8px 0;color:red;" class="remove_field ">X</a></span><div class="form-group"><label class="col-sm-4 control-label">Document Name :</label><div class="col-sm-8"><input type="text" name="insurance_document_name['+y+']"	value="" id="insurance_end_date" class="form-control"><input type="hidden" name="v_doc_id['+y+']" value="0"></div></div><div class="form-group"><label class="col-sm-4 control-label">Expiry Date :</label><div class="col-sm-8"><input type="text" name="insurance_document_expiry['+y+']" value="" id="insurance_end_date'+y+'"	class="form-control d"></div></div><div class="form-group"><label class="col-sm-4 control-label">Expiry Date :</label><div class="col-sm-8"><input type="text" name="insurance_end_date_e['+y+']" value="" id="insurance_end_date_e'+y+'" onchange=getDateDiff('+y+')	class="form-control d"></div></div><div class="form-group"><label class="col-sm-4 control-label">Remind before days :</label><div class="col-sm-8"><input type="text" name="remind_day['+y+']"	value="" id="remind_day'+y+'"	class="form-control"></div></div><div class="form-group"><label class="col-sm-4 control-label">Vechile Document copy :</label><div class="col-sm-8"><input type="file" name="insurance_card_copy['+y+']" value=""	id="insurance_card_copy" class=""></div></div></div><script>'+$("#insurance_end_date"+y).datepicker()); //add input box
+														.append('<div class="panel section_repeat" id=""><span class="col-sm-12"><a href="#" style="float:right;padding:0 14px 8px 0;color:red;" class="remove_field ">X</a></span><div class="form-group"><label class="col-sm-4 control-label">Document Name :</label><div class="col-sm-8"><input type="text" name="insurance_document_name['+y+']"	value="" id="insurance_end_date" class="form-control"><input type="hidden" name="v_doc_id['+y+']" value="0"></div></div><div class="form-group"><label class="col-sm-4 control-label">Expiry Date :</label><div class="col-sm-8"><input type="text" name="insurance_document_expiry['+y+']" onchange=getDateDiff('+y+') value="" id="insurance_end_date'+y+'"	class="form-control d"></div></div><div class="form-group"><label class="col-sm-4 control-label">Expiry Date :</label><div class="col-sm-8"><input type="text" name="insurance_end_date_e['+y+']" value="" id="insurance_end_date_e'+y+'" onchange=getDateDiff('+y+')	class="form-control d"></div></div><div class="form-group"><label class="col-sm-4 control-label">Remind before days :</label><div class="col-sm-8"><input type="text" name="remind_day['+y+']"	value="" id="remind_day'+y+'"	class="form-control"></div></div><div class="form-group"><label class="col-sm-4 control-label">Vechile Document copy :</label><div class="col-sm-8"><input type="file" name="insurance_card_copy['+y+']" value=""	id="insurance_card_copy" class=""></div></div></div><script>'+$("#insurance_end_date"+y).datepicker()); //add input box
 											}
 										});
 
@@ -407,15 +407,29 @@
 	}
 </script>
 <script>
+
 function getDateDiff(id)
 {
  
 	var exp_date=$("#insurance_end_date"+id).val();
 	var remind_date=$("#insurance_end_date_e"+id).val();
+	
+	if(exp_date =="" || remind_date=="" ) {
+		$("#remind_day"+id).val("");
+		return ;
+	}
+	
 	var f_date=parseDate(exp_date);
 	var s_date=parseDate(remind_date);
-	$("#remind_day"+id).val(Math.abs(daydiff(s_date,f_date)));
+	var noofdays = daydiff( f_date , s_date ) ;
+	if(noofdays > 0 )  	$("#remind_day"+id).val(noofdays);
+	else {
+		$("#insurance_end_date_e"+id).val("");
+		$("#remind_day"+id).val("");
+	}
+	
 }
+
 function parseDate(str) {
 	var mdy = str.split('-');
     return new Date(mdy[0], mdy[1], mdy[2]);

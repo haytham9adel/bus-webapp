@@ -458,7 +458,9 @@ $(function() {
 			<div class="form-group">
 				<label class="col-sm-3 control-label">Mobile Number</label>
 				<div class="col-sm-9">
-					<input type="text" id="s_contact" value="${studentBean.s_contact}"
+					<div class="input-group-addon zero">${country_details.c_code}</div>
+				
+					<input type="text"  style="padding:6px 55px;" id="s_contact" value="${studentBean.s_contact}"
 						name="s_contact" class="form-control">
 				</div>
 			</div>

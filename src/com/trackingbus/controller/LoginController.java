@@ -27,12 +27,13 @@ public class LoginController {
 	private LoginService loginservice;
 	
 	@RequestMapping(value="/login.html",method=RequestMethod.GET)
-	public ModelAndView login()
+	public ModelAndView login( HttpSession session)
 	{
-		return new ModelAndView("home/login");
+		return new ModelAndView("home/"+session.getAttribute("m_user_language")+"/login");
 	}
 	@RequestMapping(value="/login.html",method=RequestMethod.POST)
-	public ModelAndView login(@ModelAttribute("command") LoginModel loginmodel, BindingResult result,ModelMap model,HttpServletRequest request)
+	public ModelAndView login(@ModelAttribute("command") LoginModel loginmodel, BindingResult result,
+			ModelMap model,HttpServletRequest request ,HttpSession session)
 	{
 		try{
 		if (result.hasErrors()) {
@@ -43,7 +44,6 @@ public class LoginController {
 			if(found!=null){
 			if(found!=null && found.getUser_pass().equals(loginmodel.getUser_pass()))
 			{
-				HttpSession session=request.getSession();
 				session.setAttribute("f_name", found.getFirst_name());
 				session.setAttribute("l_name", found.getLast_name());
 				session.setAttribute("family_name", found.getFamily_name());
@@ -86,7 +86,7 @@ public class LoginController {
 			System.out.println(e);
 			e.printStackTrace();
 		}
-		return new ModelAndView("home/login");
+		return new ModelAndView("home/"+session.getAttribute("m_user_language")+"/login");
 	}
 	
 	/*@RequestMapping("/person.html")

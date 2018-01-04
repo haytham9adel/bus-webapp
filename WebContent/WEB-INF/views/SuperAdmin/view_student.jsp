@@ -149,7 +149,7 @@
                          <label class="col-sm-12 control-label">${country.c_name}</label>
                        </div>
                    </div> --%>
-			<div class="form-group">
+			<div style="display: none;" class="form-group">
 				<label class="col-sm-3 control-label">Mobile Number:</label>
 				<div class="col-sm-9">
 					<label class="col-sm-12 control-label">${student.s_contact}</label>

@@ -10,10 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.json.JsonObject;
-import javax.jws.WebService;
-import javax.mail.internet.NewsAddress;
-import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -34,10 +30,8 @@ import com.trackingbus.bean.HolidayBean;
 import com.trackingbus.bean.HolidayDeletedBean;
 import com.trackingbus.bean.LoginBean;
 import com.trackingbus.bean.NotificationBean;
-import com.trackingbus.bean.RouteBean;
 import com.trackingbus.bean.RouteLatLng;
 import com.trackingbus.bean.SchoolMessageBean;
-import com.trackingbus.bean.StudentAbsentBean;
 import com.trackingbus.bean.StudentBean;
 import com.trackingbus.model.AttendanceModel;
 import com.trackingbus.model.CountryModel;
@@ -97,8 +91,8 @@ public class Webservices<K> {
 	@ResponseBody
 	public String webserviceLogin(@ModelAttribute("command") LoginBean login) {
 		String jsonResult = "";
-
 		try {
+	        System.out.println("jsonNew >>" + login.toString()); 
 			JSONObject jsonArray = new JSONObject();
 			/*
 			 * JSONObject jsonArray = new JSONObject(jsonNew); String
@@ -330,12 +324,13 @@ public class Webservices<K> {
 		return jsonResult;
 		
 	}	
+	
 	@SuppressWarnings("unused")
 	@RequestMapping(value = "webservices/driverLogin", method = RequestMethod.POST,produces = "application/json; charset=utf-8")
 	@ResponseBody
 	public String driverLogin(@RequestBody String jsonNew) {
 		String jsonResult = "";
-
+        System.out.println("jsonNew >>" + jsonNew); 
 		try {
 			
 			JodaTimeExample jtx=new JodaTimeExample();
@@ -351,16 +346,15 @@ public class Webservices<K> {
 				String user_email = (String) jsonArray1.get("user_email");
 				String user_pass = (String) jsonArray1.get("user_pass");
 				String device_id=(String) jsonArray1.get("device_id");
-				DriverModel found = webserviceService.driverLogin(user_email,
-						user_pass);
+				DriverModel found = webserviceService.driverLogin(user_email , user_pass);
 				
 				if (found != null){
-					
-					
+					if( found.getDevice_token() ==null ) found.setDevice_token("0"); 
+
+						
 					if(found.getDevice_id().equals(device_id) || found.getDevice_id().equals("") || found.getDevice_id().equals(null))
 					{
-						
-				if (found != null && found.getPassword().equals(user_pass)) {
+  				     if (found != null && found.getPassword().equals(user_pass)) {
 					
 					
 					JSONObject n=new JSONObject();
@@ -368,11 +362,10 @@ public class Webservices<K> {
 					//n.put("blink_status", "0");
 					Gcm g1= new Gcm();
 					
-					if(!found.getDevice_token().equals("")){
+					
+					if( !found.getDevice_token().equals("")){
 						g1.pushNotificationToGCM(found.getDevice_token(), n.toString());
 					}
-					
-					
 					
 					loginservice.updateDriverLoggedIn(found.getDriver_id(),1);
 					loginservice.updateDriverDeviceToken(found.getDriver_id(), device_token);
@@ -394,7 +387,6 @@ public class Webservices<K> {
 					jsonArray.put("nationlity", found.getNationality());
 					
 					RouteModel routemodel = schoolservice.getRouteById(found.getRoute_id());
-					
 					jsonArray.put("route_name", routemodel.getRoute_name());
 					jsonArray.put("device_token",device_token);
 					jsonArray.put("qr_code", "d_"+found.getDriver_id()+".png");
@@ -714,9 +706,7 @@ public class Webservices<K> {
 			jsonResult = jsonArray.toString();
 
 		} catch (Exception e) {
-			e.printStackTrace();
 			System.out.println(e);
-			 
 		}
 
 		return jsonResult;
@@ -1670,7 +1660,7 @@ public class Webservices<K> {
 					{
 						String contact_number = parent.getMobile_number();
 						Sms_api sms = new Sms_api();
-						sms.sendhttp(msg, 0, contact_number);
+						sms.sendMsg(msg,  contact_number);
 					}
 					
 					
@@ -1741,7 +1731,7 @@ public class Webservices<K> {
 					{
 						String contact_number = parent.getMobile_number();
 						Sms_api sms = new Sms_api();
-						sms.sendhttp(msg, 0, contact_number);
+						sms.sendMsg(msg, contact_number);
 					}
 					//Map<String, String> n=new HashMap<String, String>();
 					JSONObject n=new JSONObject();
@@ -1808,7 +1798,7 @@ public class Webservices<K> {
 					{
 						String contact_number = parent.getMobile_number();
 						Sms_api sms = new Sms_api();
-						sms.sendhttp(msg, 0, contact_number);
+						sms.sendMsg(msg, contact_number);
 					}
 					Map<String, String> n=new HashMap<String, String>();
 					JSONObject jsonObjectnew=new JSONObject();
@@ -1891,7 +1881,7 @@ public class Webservices<K> {
 				{
 					String contact_number = parent.getMobile_number();
 					Sms_api sms = new Sms_api();
-					sms.sendhttp(msg, 0, contact_number);
+					sms.sendMsg(msg, contact_number);
 				}
 				
 //				Notification for blinking 
@@ -2067,7 +2057,8 @@ public class Webservices<K> {
 				int ins_status=noti_bean.getIns_status();
 				
 				//String parent_ids= "item1 , item2 , item3";
-				String msg = noti_bean.getMsg();
+				String msg = noti_bean.getMsg()  ;
+				System.out.println("msg :" + msg);
 				List<String> items = Arrays.asList(parent_ids.split("\\s*,\\s*"));
 				DateFormat dateFormat1 = new SimpleDateFormat(
 						"yyyy-MM-dd hh:mm:ss");
@@ -2077,7 +2068,9 @@ public class Webservices<K> {
 				{
 					for(String item: items)
 					{
-					 
+						
+						System.out.println("parent :" + item);
+
 						LoginModel parent = schoolservice.getParentById(Integer.parseInt(item));
 						String contact_number = parent.getMobile_number();
 						Sms_api sms = new Sms_api();
@@ -2085,17 +2078,17 @@ public class Webservices<K> {
 						{
 							if(parent.getSms_instant_message()==0)
 							{
-								sms.sendhttp(msg, 0, contact_number);
+								sms.sendMsg(msg,  contact_number);
 							}
 						}else if (ins_status==2) {
 							if(parent.getSms_morning_before()==0)
 							{
-								sms.sendhttp(msg, 0, contact_number);
+								sms.sendMsg(msg,  contact_number);
 							}
 						}else if (ins_status==3) {
 							if(parent.getSms_evening_before()==0)
 							{
-								sms.sendhttp(msg, 0, contact_number);
+								sms.sendMsg(msg,  contact_number);
 							}
 						}
 						String noti_type_str="";
@@ -2325,7 +2318,7 @@ public class Webservices<K> {
 						+ found.getUser_email() + "&#13;&#10;Username: "
 						+ found.getUser_name() + "&#13;&#10;password: "
 						+ found.getUser_pass() + "";
-				sms.sendhttp(msg, 0, found.getMobile_number());
+				sms.sendMsg(msg,  found.getMobile_number());
 				jsonObject.put("result", "success");
 				jsonObject.put("responseMessage", "Successfully request sent");
 			} else {
@@ -2884,7 +2877,7 @@ public class Webservices<K> {
 							if(speed>sms_max_speed)
 							{
 								Sms_api sms = new Sms_api();
-								sms.sendhttp(msg, 0, contact_number);
+								sms.sendMsg(msg,  contact_number);
 							}
 						}
 					}
@@ -2932,7 +2925,7 @@ public class Webservices<K> {
 					if(speed>sms_max_speed)
 					{
 						Sms_api sms = new Sms_api();
-						sms.sendhttp(msg, 0, contact_number);
+						sms.sendMsg(msg,  contact_number);
 					}
 				}
 				

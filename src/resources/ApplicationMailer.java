@@ -27,7 +27,7 @@ public class ApplicationMailer
 	
 	public void sendEmail(final String to,String msg,String Subject,final String password)
 	{
-	
+		try {
 	//	final String username = asm.getEmail_id();
 	//	final String password = asm.getPassword();
 
@@ -44,7 +44,7 @@ public class ApplicationMailer
 			}
 		  });
 
-		try {
+	
 
 			Message message = new MimeMessage(session);
 			message.setFrom(new InternetAddress("no-reply@m3aak.net"));
@@ -57,7 +57,7 @@ public class ApplicationMailer
 			System.out.println("Done");
 
 		} catch (MessagingException e) {
-			throw new RuntimeException(e);
+			System.out.println(e); 
 		}
 	}
 	public void sendEmailPromotional(final String to,String msg,String Subject,final String password,final String sender)

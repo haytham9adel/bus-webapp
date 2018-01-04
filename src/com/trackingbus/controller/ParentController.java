@@ -472,25 +472,7 @@ public class ParentController {
 
 	}
 
-	/**
-	 * Function for Messaging system in parent section
-	 **/
-	@RequestMapping(value = "parent/inboxMessage", method = RequestMethod.GET)
-	public ModelAndView inboxMessage(
-			@ModelAttribute("command") LoginBean parents, BindingResult result,
-			StudentBean student, ModelMap model, HttpServletRequest request) {
-		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole") != "Parent") {
-			return new ModelAndView("redirect:/login.html");
-		}
-		int user_id = (Integer) session.getAttribute("user_id");
-		int school_id = (Integer) session.getAttribute("schoolId");
-		LoginModel school_admin = schoolservice.getMainSchoolAdmin(school_id);
-		model.put("school_details", schoolservice.getSchoolById(school_id));
-		model.put("school_admin", school_admin);
-		return new ModelAndView("parent/chattingParent", model);
-
-	}
+	
 	/**
 	 * Function for Messaging system in parent section
 	 **/

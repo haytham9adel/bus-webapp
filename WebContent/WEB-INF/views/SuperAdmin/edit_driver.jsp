@@ -3,7 +3,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <link rel="stylesheet"
 	href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
 <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <link rel="stylesheet" href="resources/dashboard/css/cropper.css">
  <script>
@@ -11,12 +10,12 @@
     $( "#dob" ).datepicker({ dateFormat: 'yy-mm-dd',
     	changeMonth: true,
         changeYear: true,
-        yearRange: "-100:+0",});
+        yearRange: "-100:+0" });
     $( "#licence_expiry" ).datepicker({ dateFormat: 'yy-mm-dd',
     	changeMonth: true,
         changeYear: true,
         minDate:0,
-        yearRange: "-0:+50",});
+        yearRange: "-0:+50" });
     
     $('body').on('click',".d", function(){  
     	//$(this).datepicker('destroy').datepicker({showOn:'focus'}).focus();
@@ -143,6 +142,7 @@
 				<label class="col-sm-3 control-label">Blood Type :</label>
 				<div class="col-sm-9">
 					<select class="form-control" name="blood_group" id="blood_group">
+						<option <c:if test="${driver.blood_group=='NA'}"> selected="selected" </c:if> value="NA"></option>
 
 
 						<option
@@ -259,7 +259,7 @@
 						<label class="col-sm-4 control-label">Expiry Date :</label>
 						<div class="col-sm-8">
 							<input type="text" name="insurance_document_expiry[<%=j1%>]"
-								value="${doc.insurance_document_expiry}" id="insurance_end_date<%=j1%>"
+							 onchange="getDateDiff(<%=j1%>);" 	value="${doc.insurance_document_expiry}" id="insurance_end_date<%=j1%>"
 								class="form-control d">
 						</div>
 					</div><!-- form-group -->
@@ -361,6 +361,8 @@
 						email: true
 					}, */
 					contact_number: "required",
+					 dob:"required",
+
           },
           messages: {
         	  driver_fname: "Please enter first name",
@@ -372,6 +374,7 @@
 			          	},
 			          	contact_number: "Please enter Mobile number",
 			 address:"Please enter address",
+			 dob:"Please enter birth date",
 			  },
           submitHandler: function(form) {
         	  var check_route_input=$("#check_route_input").val();
@@ -929,7 +932,7 @@ function init(a,b,latiLongi,sourceDesti,source_name,destination_name) {
 												x++; //text box increment
 												y++;
 												$(wrapper)
-														.append('<div class="panel section_repeat" id=""><span class="col-sm-12"><a href="#" style="float:right;padding:0 14px 8px 0;color:red;" class="remove_field ">X</a></span><div class="form-group"><label class="col-sm-4 control-label">Document Name :</label><div class="col-sm-8"><input type="text" name="insurance_document_name['+y+']"	value="${vechileBean.insurance_document_name}" id="insurance_end_date" class="form-control"><input type="hidden" name="v_doc_id['+y+']" value="0"></div></div><div class="form-group"><label class="col-sm-4 control-label">Expiry Date :</label><div class="col-sm-8"><input type="text" name="insurance_document_expiry['+y+']" value="${vechileBean.insurance_document_expiry}" id="insurance_end_date'+y+'"	class="form-control d"></div></div><div class="form-group"><label class="col-sm-4 control-label">Remind Date :</label><div class="col-sm-8"><input type="text" onchange=getDateDiff('+y+') name="insurance_end_date['+y+']" value="${vechileBean.insurance_end_date}" id="insurance_end_date_e'+y+'"	class="form-control d"></div></div><div class="form-group"><label class="col-sm-4 control-label">Remind before days :</label><div class="col-sm-8"><input type="text" name="remind_day['+y+']"	value="${vechileBean.remind_day}" id="remind_day'+y+'"	class="form-control"></div></div><div class="form-group"><label class="col-sm-4 control-label">Vechile Document copy :</label><div class="col-sm-8"><input type="file" name="insurance_card_copy['+y+']" value="" id="insurance_card_copy" class=""></div></div></div><script>'+$("#insurance_end_date"+y).datepicker()+$("#insurance_end_date_e"+y).datepicker()); //add input box
+														.append('<div class="panel section_repeat" id=""><span class="col-sm-12"><a href="#" style="float:right;padding:0 14px 8px 0;color:red;" class="remove_field ">X</a></span><div class="form-group"><label class="col-sm-4 control-label">Document Name :</label><div class="col-sm-8"><input type="text" name="insurance_document_name['+y+']"	value="${vechileBean.insurance_document_name}" id="insurance_end_date" class="form-control"><input type="hidden" name="v_doc_id['+y+']" value="0"></div></div><div class="form-group"><label class="col-sm-4 control-label">Expiry Date :</label><div class="col-sm-8"><input type="text" name="insurance_document_expiry['+y+']" onchange=getDateDiff('+y+') value="${vechileBean.insurance_document_expiry}" id="insurance_end_date'+y+'"	class="form-control d"></div></div><div class="form-group"><label class="col-sm-4 control-label">Remind Date :</label><div class="col-sm-8"><input type="text" onchange=getDateDiff('+y+') name="insurance_end_date['+y+']" value="${vechileBean.insurance_end_date}" id="insurance_end_date_e'+y+'"	class="form-control d"></div></div><div class="form-group"><label class="col-sm-4 control-label">Remind before days :</label><div class="col-sm-8"><input type="text" name="remind_day['+y+']"	value="${vechileBean.remind_day}" id="remind_day'+y+'"	class="form-control"></div></div><div class="form-group"><label class="col-sm-4 control-label">Vechile Document copy :</label><div class="col-sm-8"><input type="file" name="insurance_card_copy['+y+']" value="" id="insurance_card_copy" class=""></div></div></div><script>'+$("#insurance_end_date"+y).datepicker()+$("#insurance_end_date_e"+y).datepicker()); //add input box
 											}
 										});
 
@@ -961,10 +964,23 @@ function getDateDiff(id)
  
 	var exp_date=$("#insurance_end_date"+id).val();
 	var remind_date=$("#insurance_end_date_e"+id).val();
+	
+	if(exp_date =="" || remind_date=="" ) {
+		$("#remind_day"+id).val("");
+		return ;
+	}
+	
 	var f_date=parseDate(exp_date);
 	var s_date=parseDate(remind_date);
-	$("#remind_day"+id).val(Math.abs(daydiff(s_date,f_date)));
+	var noofdays = daydiff( f_date , s_date ) ;
+	if(noofdays > 0 )  	$("#remind_day"+id).val(noofdays);
+	else {
+		$("#insurance_end_date_e"+id).val("");
+		$("#remind_day"+id).val("");
+	}
+	
 }
+
 function parseDate(str) {
 	var mdy = str.split('-');
     return new Date(mdy[0], mdy[1], mdy[2]);

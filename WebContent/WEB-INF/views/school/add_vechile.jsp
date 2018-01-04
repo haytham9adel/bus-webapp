@@ -90,7 +90,7 @@
 						<label class="col-sm-4 control-label">Expiry Date :</label>
 						<div class="col-sm-8">
 							<input type="text" name="insurance_document_expiry[0]"
-								value="${vechileBean.insurance_document_expiry}" id="insurance_end_date0"
+							onchange="getDateDiff(0);"	value="${vechileBean.insurance_document_expiry}" id="insurance_end_date0"
 								class="form-control d">
 						</div>
 					</div><!-- form-group -->
@@ -203,7 +203,7 @@
 												y++;
 												$(wrapper)
 														.append(
-																'<div class="panel section_repeat" id=""><span class="col-sm-12"><a href="#" style="float:right;padding:0 14px 8px 0;color:red;" class="remove_field ">X</a></span><div class="form-group"><label class="col-sm-4 control-label">Document Name :</label><div class="col-sm-8"><input type="text" name="insurance_document_name['+y+']"	value="${vechileBean.insurance_document_name}" id="insurance_end_date" class="form-control"></div></div><div class="form-group"><label class="col-sm-4 control-label">Expiry Date :</label><div class="col-sm-8"><input type="text" name="insurance_document_expiry['+y+']" value="${vechileBean.insurance_document_expiry}" id="insurance_end_date'+y+'"	class="form-control d"></div></div><div class="form-group"><label class="col-sm-4 control-label">Remind Date :</label><div class="col-sm-8"><input type="text" name="insurance_end_date_e['+y+']" value="${vechileBean.insurance_end_date_e}" id="insurance_end_date_e'+y+'" onchange="getDateDiff('+y+')"	class="form-control d"></div></div><div class="form-group"><label class="col-sm-4 control-label">Remind before days :</label><div class="col-sm-8"><input type="text" name="remind_day['+y+']"	value="${vechileBean.remind_day}" id="remind_day'+y+'"	class="form-control"></div></div><div class="form-group"><label class="col-sm-4 control-label">Vechile Document copy :</label><div class="col-sm-8"><input type="file" name="insurance_card_copy['+y+']" value=""	id="insurance_card_copy" class=""></div></div></div><script>'+$("#insurance_end_date"+y).datepicker()+$("#insurance_end_date_e"+y).datepicker()); //add input box
+																'<div class="panel section_repeat" id=""><span class="col-sm-12"><a href="#" style="float:right;padding:0 14px 8px 0;color:red;" class="remove_field ">X</a></span><div class="form-group"><label class="col-sm-4 control-label">Document Name :</label><div class="col-sm-8"><input type="text" name="insurance_document_name['+y+']"	value="${vechileBean.insurance_document_name}" id="insurance_end_date" class="form-control"></div></div><div class="form-group"><label class="col-sm-4 control-label">Expiry Date :</label><div class="col-sm-8"><input type="text" onchange="getDateDiff('+y+')" name="insurance_document_expiry['+y+']" value="${vechileBean.insurance_document_expiry}" id="insurance_end_date'+y+'"	class="form-control d"></div></div><div class="form-group"><label class="col-sm-4 control-label">Remind Date :</label><div class="col-sm-8"><input type="text" name="insurance_end_date_e['+y+']" value="${vechileBean.insurance_end_date_e}" id="insurance_end_date_e'+y+'" onchange="getDateDiff('+y+')"	class="form-control d"></div></div><div class="form-group"><label class="col-sm-4 control-label">Remind before days :</label><div class="col-sm-8"><input type="text" name="remind_day['+y+']"	value="${vechileBean.remind_day}" id="remind_day'+y+'"	class="form-control"></div></div><div class="form-group"><label class="col-sm-4 control-label">Vechile Document copy :</label><div class="col-sm-8"><input type="file" name="insurance_card_copy['+y+']" value=""	id="insurance_card_copy" class=""></div></div></div><script>'+$("#insurance_end_date"+y).datepicker()+$("#insurance_end_date_e"+y).datepicker()); //add input box
 											}
 										});
 
@@ -220,9 +220,21 @@ function getDateDiff(id)
  
 	var exp_date=$("#insurance_end_date"+id).val();
 	var remind_date=$("#insurance_end_date_e"+id).val();
+	
+	if(exp_date =="" || remind_date=="" ) {
+		$("#remind_day"+id).val("");
+		return ;
+	}
+	
 	var f_date=parseDate(exp_date);
 	var s_date=parseDate(remind_date);
-	$("#remind_day"+id).val(Math.abs(daydiff(s_date,f_date)));
+	var noofdays = daydiff( f_date , s_date ) ;
+	if(noofdays > 0 )  	$("#remind_day"+id).val(noofdays);
+	else {
+		$("#insurance_end_date_e"+id).val("");
+		$("#remind_day"+id).val("");
+	}
+	
 }
 function parseDate(str) {
 	var mdy = str.split('-');

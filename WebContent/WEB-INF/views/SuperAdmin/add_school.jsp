@@ -204,15 +204,6 @@
 						style="padding-left: 59px;">
 				</div>
 			</div>
-
-
-
-
-
-
-
-
-
 		</div>
 	</div>
 	<div class="col-sm-12 col-xs-12">
@@ -221,20 +212,9 @@
 			<div id="geomap" style="width: 100%; height: 500px;">
 				<p>Loading Please Wait...</p>
 			</div>
-
-
-
-			<!--    
-<div class="form-group">
-     <div class="col-sm-9">
-      <input  class="btn btn-primary" value="Add School" type="submit">
-     </div>
- </div> -->
-
-
 		</div>
-		<input id="hidLat" name="school_lat" type="hidden" value=""> <input
-			id="hidLong" name="school_lng" type="hidden" value="">
+		<input id="hidLat" name="school_lat" type="text" value=""> 
+		<input	id="hidLong" name="school_lng" type="text" value="">
 		<div class="clear">&nbsp;</div>
 		<div class="form-group">
 			<div class="col-sm-12 text-center">
@@ -322,7 +302,6 @@
 		return false;
 	}
 	function getCity() {
-
 		var c_id = $("#country").val();
 		$.ajax({
 			url : 'getCityByState.html',
@@ -394,21 +373,6 @@
 	}
 </script>
 
-<!-- <script type="text/javascript">
-	function readURL(input) {
-		if (input.files && input.files[0]) {
-			var reader = new FileReader();
-
-			reader.onload = function(e) {
-				$('#blah').attr('src', e.target.result);
-				var src = $('img[alt="image_path"]').attr('src');
-				$("#school_logo").val(src);
-			}
-
-			reader.readAsDataURL(input.files[0]);
-		}
-	}
-</script> -->
 <script type="text/javascript">
 	function readURL(input) {
 		if (input.files && input.files[0]) {
@@ -417,9 +381,7 @@
 			reader.onload = function(e) {
 				$('.cropper-canvas img').attr('src', e.target.result);
 				$('.cropper-view-box img').attr('src', e.target.result);
-				
 				var src = $('img[alt="s_image_path"]').attr('src');
-			 
 				$("#school_logo").val(src);
 			}
 
@@ -427,14 +389,9 @@
 		}
 	}
 </script>
-<!--    <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script> -->
-
-<script type="text/javascript"
-	src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
-<script type="text/javascript"
-	src="http://maps.googleapis.com/maps/api/js?libraries=places&sensor=false&key=AIzaSyA7QTJeimvMfcLMul6ZsMRZA1qOfjsyHtc"></script>
-<script type="text/javascript"
-	src="resources/front/js/jquery.geocomplete.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+<script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?libraries=places&sensor=false&key=AIzaSyA7QTJeimvMfcLMul6ZsMRZA1qOfjsyHtc"></script>
+<script type="text/javascript" src="resources/front/js/jquery.geocomplete.min.js"></script>
 <script type="text/javascript">
 	var PostCodeid = "#school_address";
 	var longval = "#hidLong";
@@ -476,13 +433,9 @@
 	};
 
 	$(document).ready(function() {
-
 		initialize();
-
 		$(function() {
 			$(PostCodeid).autocomplete({
-
-				//This bit uses the geocoder to fetch address values
 				source : function(request, response) {
 					geocoder.geocode({
 						'address' : request.term
@@ -501,7 +454,6 @@
 
 		$('#school_address').on("change", function(e) {
 			setTimeout(function() {
-
 				var address = $("#school_address").val();
 				geocoder.geocode({
 					'address' : address
@@ -511,10 +463,7 @@
 						marker.setPosition(results[0].geometry.location);
 						$(latval).val(marker.getPosition().lat());
 						$(longval).val(marker.getPosition().lng());
-					} else {
-						/* 	alert("Geocode was not successful for the following reason: "
-									+ status); */
-					}
+					} else {}
 				});
 				e.preventDefault();
 			}, 400);
@@ -535,23 +484,7 @@
 				}
 			});
 		});
-		/* $('#school_address').on("change",function(e) {
-			setTimeout(function() {
-				var address = $("#school_address").val();
-				geocoder.geocode({'address' : address},function(results,status) {
-					if (status == google.maps.GeocoderStatus.OK) {
-							map.setCenter(results[0].geometry.location);
-							marker.setPosition(results[0].geometry.location);
-							$(latval).val(marker.getPosition().lat());
-							$(longval).val(marker.getPosition().lng());
-					}else{ alert("Geocode was not successful for the following reason: "+ status);
-					}
-		});
-		e.preventDefault();
-		}, 400);
-		}); */
-
-	});
+    });
 </script>
 <script type='text/javascript'>
 	function initialize1() {

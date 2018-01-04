@@ -277,4 +277,34 @@ public class LoginBean {
 	public void setMobile_number(String mobile_number) {
 		this.mobile_number = mobile_number;
 	}
+	@Override
+	public String toString() {
+		return "LoginBean [user_email=" + user_email + ", user_pass="
+				+ user_pass + ", user_name=" + user_name + ", contact_number="
+				+ contact_number + ", user_role=" + user_role + ", school_id="
+				+ school_id + ", user_id=" + user_id + ", school_name="
+				+ school_name + ", first_name=" + first_name + ", last_name="
+				+ last_name + ", p_status=" + p_status + ", permission="
+				+ permission + ", main_school_admin=" + main_school_admin
+				+ ", device_token=" + device_token + ", middle_name="
+				+ middle_name + ", family_name=" + family_name
+				+ ", mobile_number=" + mobile_number + ", lang=" + lang
+				+ ", noti_on=" + noti_on + ", chat_on=" + chat_on
+				+ ", checked_in_on=" + checked_in_on + ", checked_out_on="
+				+ checked_out_on + ", speed_on=" + speed_on + ", max_speed="
+				+ max_speed + ", wrong_route_on=" + wrong_route_on
+				+ ", sms_checked_in_on=" + sms_checked_in_on
+				+ ", sms_checked_out_on=" + sms_checked_out_on
+				+ ", sms_speed_on=" + sms_speed_on + ", sms_max_speed="
+				+ sms_max_speed + ", sms_wrong_route_on=" + sms_wrong_route_on
+				+ ", instant_message=" + instant_message + ", morning_before="
+				+ morning_before + ", evening_before=" + evening_before
+				+ ", sms_instant_message=" + sms_instant_message
+				+ ", sms_morning_before=" + sms_morning_before
+				+ ", sms_evening_before=" + sms_evening_before + ", device_id="
+				+ device_id + ", sound_setting=" + sound_setting
+				+ ", chat_sound=" + chat_sound + "]";
+	}
+	
+	
 }

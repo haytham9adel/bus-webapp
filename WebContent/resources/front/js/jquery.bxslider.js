@@ -187,7 +187,7 @@
 		 */
 		var setup = function(){
 			// wrap el in a wrapper
-			el.wrap('<div class="' + slider.settings.wrapperClass + '"><div class="bx-viewport"></div></div>');
+			el.wrap('<div align="center" class="' + slider.settings.wrapperClass + '"><div class="bx-viewport"></div></div>');
 			// store a namespace reference to .bx-viewport
 			slider.viewport = el.parent();
 			// add a loading div to display while images are loading

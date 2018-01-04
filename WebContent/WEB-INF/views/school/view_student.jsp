@@ -88,7 +88,7 @@
                          <label class="col-sm-12 control-label">${country.c_name}</label>
                        </div>
                    </div> --%>
-			<div class="form-group">
+			<div style="display: none;" class="form-group">
 				<label class="col-sm-3 control-label">Mobile Number:</label>
 				<div class="col-sm-9">
 					<label class="col-sm-12 control-label">${student.s_contact}</label>
@@ -194,7 +194,7 @@ onclick="PrintElem('#mydiv')">Print</button>
 <div class="student_id_qr pull-right"
 	style="margin-top: 14px; position: absolute; right: 0px; width: 100px; height: 100px; bottom: 0px;">
 	<img style="width: 100px;"
-		src="<%=Assets.BASE_URL %><%=Assets.STUDENT_QR_PATH %>s_${student.student_id}.png""
+		src="<%=Assets.STUDENT_QR_PATH %>s_${student.student_id}.png""
 					class="img-responsive" />
 			</div>
 		</div>

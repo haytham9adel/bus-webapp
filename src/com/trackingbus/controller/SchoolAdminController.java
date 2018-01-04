@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.enterprise.inject.New;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -189,9 +190,13 @@ public class SchoolAdminController {
 		model.put("parents",
 				getParentList(studentservice.listParent(school_id)));
 		model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
-		model.put("school_details", schoolservice.getSchoolById(school_id));
+		
+		SchoolModel schol =  schoolservice.getSchoolById(school_id) ;
+		model.put("school_details",schol);
 		model.put("class_info", getAllClassList(schoolservice.getAllSchoolClasses(school_id)));
 		model.put("nationality", prepareNationalityList(schoolservice.getAllNationlity()));
+		model.put("country_details", schoolservice.getCountryById(schol.getCountry()));
+
 		return new ModelAndView("school/add_student", model);
 	}
 
@@ -287,15 +292,19 @@ public class SchoolAdminController {
 						String part2 = parts[1]; // 034556
 						int rand = RandomUtils.nextInt();
 						imageName = studentbean.getS_contact() + rand + ".png";
-						String directory = request.getServletContext()
-								.getRealPath(
-										Assets.STUDENT_UPLOAD_PATH + imageName);
+						String directory = 	Assets.STUDENT_UPLOAD_PATH + imageName ;
 						byte[] imageByteArray = Base64.decodeBase64(part2);
 						// Write a image byte array into file system
-						FileOutputStream imageOutFile = new FileOutputStream(
-								directory);
+						FileOutputStream imageOutFile = new FileOutputStream(directory);
 						imageOutFile.write(imageByteArray);
 						imageOutFile.close();
+
+						//TO DO : delete after update app 
+						String directory2 = request.getServletContext().getRealPath(	Assets.STUDENT_UPLOAD_PATH_to_del + imageName );
+						FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
+						imageOutFile2.write(imageByteArray);
+						imageOutFile2.close();
+						
 					} else {
 						imageName = "";
 					}
@@ -327,9 +336,11 @@ public class SchoolAdminController {
 					student.setStudent_class(studentbean.getStudent_class());
 					student.setStudent_id(null);
 					student.setBlink_status(0);
+					
 					List<String> relationship_details=studentbean.getRelationship_details();
 					List<String> parent_list=studentbean.getParent_list();
 					int relation_size=relationship_details.size();
+					
 					if(relation_size==2)
 					{
 						relationship_details.add(2, "");
@@ -384,10 +395,9 @@ public class SchoolAdminController {
 					qr_text=""+student_id;
 					ByteArrayOutputStream out = QRCode.from(qr_text)
 							.to(ImageType.PNG).stream();
-					String qr_directory = request.getServletContext()
-							.getRealPath(
-									Assets.STUDENT_QR_PATH + "/s_" + student_id
-											+ ".png");
+					String qr_directory =
+									Assets.STUDENT_QR_PATH_SYS + "/s_" + student_id
+											+ ".png" ;
 
 					FileOutputStream fout = new FileOutputStream(new File(
 							qr_directory));
@@ -405,8 +415,8 @@ public class SchoolAdminController {
 					String s_address = "";
 					System.out.println(latArr[latArr.length - 1]);
 
-					GoogleResponse res1 = convertFromLatLong(latArr[latArr.length - 1]
-							+ "," + lngArr[lngArr.length - 1]);
+					GoogleResponse res1 = convertFromLatLong(latArr[latArr.length - 1] + "," + lngArr[lngArr.length - 1]);
+					
 					if (res1.getStatus().equals("OK")) {
 						for (Result result2 : res1.getResults()) {
 							s_address = result2.getFormatted_address();
@@ -562,8 +572,8 @@ public class SchoolAdminController {
 				
 				schoolservice.addParent(parentModel);
 				Sms_api sms = new Sms_api();
-				sms.sendhttp("Your login details are username=" + username
-						+ " and password=" + password, 0,
+				sms.sendMsg("Your login details are username=" + username
+						+ " and password=" + password, 
 						parent.getLast_name()+parent.getMobile_number());
 				model.addAttribute("success", "Parent Added Successfully");
 				model.addAttribute("username", username);
@@ -960,20 +970,24 @@ public class SchoolAdminController {
 
 		Map<String, Object> model = new HashMap<String, Object>();
 		if (studentModel != null) {
+			
 			int school_id = (Integer) session.getAttribute("schoolId");
-			model.put("parents",
-					getParentList(studentservice.listParent(school_id)));
+			model.put("parents", getParentList(studentservice.listParent(school_id)));
 			model.put("heading", "Edit Student");
-			model.put("countries",
-					prepareListofBean(schoolservice.listCountry()));
+			model.put("countries",prepareListofBean(schoolservice.listCountry()));
 			model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
 			model.put("studentBean", studentModel);
-			RouteLatLngModel latlngmodel = studentservice
-					.getLatLngBySId(student_id);
+			
+			RouteLatLngModel latlngmodel = studentservice.getLatLngBySId(student_id);
 			model.put("latlng", latlngmodel);
 			model.put("nationality", prepareNationalityList(schoolservice.getAllNationlity()));
-			model.put("school_details", schoolservice.getSchoolById(school_id));
+			
+			SchoolModel schol =  schoolservice.getSchoolById(school_id) ;
+
+			model.put("school_details", schol);
 			model.put("class_info", getAllClassList(schoolservice.getAllSchoolClasses(school_id)));
+			model.put("country_details", schoolservice.getCountryById(schol.getCountry()));
+
 			return new ModelAndView("school/edit_student", model);
 		} else {
 			return new ModelAndView("redirect:manageStudents");
@@ -1012,12 +1026,19 @@ public class SchoolAdminController {
 				String part2 = parts[1]; // 034556
 				int rand = RandomUtils.nextInt();
 				imageName =  studentbean.getS_contact()+"_"+rand + ".png";
-				String directory = request.getServletContext().getRealPath(
-						Assets.STUDENT_UPLOAD_PATH + imageName);
+				String directory = 	Assets.STUDENT_UPLOAD_PATH + imageName ;
 				byte[] imageByteArray = Base64.decodeBase64(part2);
 				FileOutputStream imageOutFile = new FileOutputStream(directory);
 				imageOutFile.write(imageByteArray);
 				imageOutFile.close();
+				
+				//TO DO : delete after update app 
+				String directory2 = 	request.getServletContext().getRealPath( Assets.STUDENT_UPLOAD_PATH_to_del + imageName ) ;
+				FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
+				imageOutFile2.write(imageByteArray);
+				imageOutFile2.close();
+				
+				
 			} else {
 				imageName = "";
 			}
@@ -1034,8 +1055,8 @@ public class SchoolAdminController {
 			qr_text=""+student_id;
 			ByteArrayOutputStream out = QRCode.from(qr_text).to(ImageType.PNG)
 					.stream();
-			String qr_directory = request.getServletContext().getRealPath(
-					Assets.STUDENT_QR_PATH + "/s_" + student_id + ".png");
+			String qr_directory = 
+					Assets.STUDENT_QR_PATH_SYS + "/s_" + student_id + ".png" ;
 
 			FileOutputStream fout = new FileOutputStream(new File(qr_directory));
 			fout.write(out.toByteArray());
@@ -1299,13 +1320,12 @@ public class SchoolAdminController {
 							System.out.println(fileName.toString());
 							String[] fn = fileName.toString().split("\\.");
 							int rand = RandomUtils.nextInt();
-							String directory = request.getServletContext()
-									.getRealPath(
-											Assets.INSURANCE_CARD_COPY
+							String directory = 
+											Assets.INSURANCE_CARD_COPY_SYS
 													+ rand
 													+ vechileBean
 															.getVehile_name()
-													+ "." + fn[1]);
+													+ "." + fn[1] ;
 							new_file_name += rand
 									+ vechileBean.getVehile_name() + "."
 									+ fn[1] + ",";
@@ -1599,10 +1619,8 @@ public class SchoolAdminController {
 							byte[] bytes = fileName.getBytes();
 							String[] fn = fileName.toString().split("\\.");
 							int rand = RandomUtils.nextInt();
-							String directory = request
-									.getServletContext()
-									.getRealPath(
-											Assets.INSURANCE_CARD_COPY+rand + fn[0] + "." + fn[1]);
+							String directory = 
+											Assets.INSURANCE_CARD_COPY_SYS+rand + fn[0] + "." + fn[1] ;
 							new_file_name += rand + fn[0] + "." + fn[1]
 									+ ",";
 							
@@ -1620,22 +1638,20 @@ public class SchoolAdminController {
 					{
 						new_file_name +=",";
 					}
-
-
 				}
 			}
 			else
 			{
 				new_file_name +=",";
 			}
-			vehiclemodel.setInsurance_card_copy(vechile.getColor()
-					+ new_file_name);
+			vehiclemodel.setInsurance_card_copy(vechile.getColor() + new_file_name);
 
 			vehiclemodel.setInsurance_document_name(in_doc_name);
 			vehiclemodel.setInsurance_document_expiry(in_doc_date);
 			vehiclemodel.setRemind_day(in_doc_remind);
 			int j=0;
 			List<String> v_doc_id=vechile.getV_doc_id();
+			System.out.println("new file name > " + new_file_name );
 			List<String> items = Arrays.asList(new_file_name.split("\\s*,\\s*"));
 			if(insurance_document_name!=null)
 			{
@@ -1686,154 +1702,6 @@ public class SchoolAdminController {
 		}
 	}
 
-	/**
-	 * Function for add staff member
-	 * */
-	@RequestMapping(value = "school/addStaff", method = RequestMethod.GET)
-	public ModelAndView addStaff(
-			@ModelAttribute("command") StaffBean staffbean,
-			BindingResult result, HttpServletRequest request) {
-		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole")!= "Manager")
-		{
-		 return new ModelAndView("redirect:/login.html");
-		}
-		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("departments", getDepartments(staffservice.listDepartment()));
-		model.put("staff", staffbean);
-		model.put("heading", "Add Staff Memeber");
-		return new ModelAndView("school/add_staff", model);
-	}
-
-	/* Method for get country list */
-	private List<DepartmentBean> getDepartments(
-			List<DepartmentModel> departments) {
-
-		List<DepartmentBean> beans = null;
-		if (departments != null && !departments.isEmpty()) {
-			beans = new ArrayList<DepartmentBean>();
-			DepartmentBean bean = null;
-			for (DepartmentModel depart : departments) {
-				bean = new DepartmentBean();
-				bean.setDepart_id(depart.getDepart_id());
-				bean.setDepart_name(depart.getDepart_name());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
-
-	/**
-	 * Function for add staff post method
-	 **/
-	@RequestMapping(value = "school/addStaff", method = RequestMethod.POST)
-	public ModelAndView addStaff(
-			@ModelAttribute("command") StaffBean staffbean,
-			BindingResult result, ModelMap model, HttpServletRequest request) {
-		try {
-			HttpSession session = request.getSession();
-			if (session.getAttribute("userRole")!= "Manager")
-			{
-			 return new ModelAndView("redirect:/login.html");
-			}
-			StaffModel found = staffservice.checkSchoolName(staffbean
-					.getStaff_email());
-			if (found == null) {
-				String imageName = "";
-				if (staffbean.getImage_path() != "") {
-					String filePath = staffbean.getImage_path();
-					String[] parts = filePath.split("base64,");
-					String part2 = parts[1]; // 034556
-					int rand = RandomUtils.nextInt();
-					System.out.println(rand);
-					imageName = staffbean.getStaff_name() + rand + ".png";
-					String directory = request.getServletContext().getRealPath(
-							Assets.STAFF_UPLOAD_PATH + imageName);
-					byte[] imageByteArray = Base64.decodeBase64(part2);
-					// Write a image byte array into file system
-					FileOutputStream imageOutFile = new FileOutputStream(
-							directory);
-					imageOutFile.write(imageByteArray);
-					imageOutFile.close();
-				} else {
-					imageName = "";
-				}
-
-				StaffModel staffmodel = new StaffModel();
-				staffmodel.setAddress(staffbean.getAddress());
-				staffmodel.setDept_id(staffbean.getDept_id());
-				staffmodel.setEducation(staffbean.getEducation());
-				staffmodel.setImage_path(imageName);
-				staffmodel.setSchool_id(staffbean.getSchool_id());
-				staffmodel.setStaff_contact(staffbean.getStaff_contact());
-				staffmodel.setStaff_email(staffbean.getStaff_email());
-				staffmodel.setStaff_id(null);
-				staffmodel.setStaff_name(staffbean.getStaff_name());
-				staffmodel.setStaff_lname(staffbean.getStaff_lname());
-				staffservice.addStaff(staffmodel);
-				model.addAttribute("success", "Staff Member Added Successfully");
-			} else {
-				model.addAttribute("staff", staffbean);
-				model.addAttribute("error", "This Staff member already exist");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		model.put("departments", getDepartments(staffservice.listDepartment()));
-		model.put("staff", staffbean);
-		model.put("heading", "Add Staff Memeber");
-		return new ModelAndView("school/add_staff", model);
-
-	}
-
-	/**
-	 * Function for manage staff
-	 **/
-	@RequestMapping(value = "school/manageStaff", method = RequestMethod.GET)
-	public ModelAndView manageStaff(
-			@ModelAttribute("command") StaffBean staffbean,
-			BindingResult result, ModelMap modelH, HttpServletRequest request) {
-		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole")!= "Manager")
-		{
-		 return new ModelAndView("redirect:/login.html");
-		}
-		modelH.addAttribute("heading", "Manage Staff");
-		Map<String, Object> model = new HashMap<String, Object>();
-		int school_id = (Integer) session.getAttribute("schoolId");
-		model.put("staffs", getStaffList(staffservice.listStaff(school_id)));
-		return new ModelAndView("school/all_staff", model);
-	}
-
-	/* Method for get Student list */
-	private List<StaffBean> getStaffList(List<StaffModel> staff) {
-
-		List<StaffBean> beans = null;
-		if (staff != null && !staff.isEmpty()) {
-			beans = new ArrayList<StaffBean>();
-			StaffBean bean = null;
-			for (StaffModel st : staff) {
-				bean = new StaffBean();
-				bean.setAddress(st.getAddress());
-				bean.setDept_id(st.getDept_id());
-				bean.setEducation(st.getEducation());
-				bean.setImage_path(st.getImage_path());
-				bean.setSchool_id(st.getSchool_id());
-				bean.setStaff_contact(st.getStaff_contact());
-				bean.setStaff_email(st.getStaff_email());
-				bean.setStaff_id(st.getStaff_id());
-				bean.setStaff_name(st.getStaff_name());
-				bean.setStaff_lname(st.getStaff_lname());
-				beans.add(bean);
-			}
-		} else {
-			System.out.println("empty");
-		}
-		return beans;
-	}
 
 	/* Method for get Student list */
 	private List<RouteBean> getAllRoute(List<RouteModel> route) {
@@ -1859,114 +1727,31 @@ public class SchoolAdminController {
 		return beans;
 	}
 
-	/**
-	 * Function for edit Staff
-	 **/
-	@RequestMapping(value = "school/editStaff", method = RequestMethod.GET)
-	public ModelAndView editStudent(
-			@ModelAttribute("command") StaffBean staffbean,
-			BindingResult result, HttpServletRequest request) {
-		StaffModel staffmodel = staffservice.getStaffById(staffbean
-				.getStaff_id());
-		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole")!= "Manager")
-		{
-		 return new ModelAndView("redirect:/login.html");
-		}
-		Map<String, Object> model = new HashMap<String, Object>();
-		if (staffmodel != null) {
-			model.put("departments",
-					getDepartments(staffservice.listDepartment()));
-			model.put("heading", "Edit Staff");
-			model.put("staff", staffmodel);
+	
+	 
 
-			return new ModelAndView("school/edit_staff", model);
-		} else {
-			return new ModelAndView("redirect:manageStaff");
-		}
-
-	}
-
-	/**
-	 * Function for edit parent
-	 **/
-	@RequestMapping(value = "school/editStaff", method = RequestMethod.POST)
-	public ModelAndView editStaff(
-			@ModelAttribute("command") StaffBean staffbean,
-			BindingResult result, ModelMap model, HttpServletRequest request) {
-		try {
-			HttpSession session = request.getSession();
-			if (session.getAttribute("userRole")!= "Manager")
-			{
-			 return new ModelAndView("redirect:/login.html");
-			}
-			String imageName = "";
-			if (staffbean.getImage_path() != "") {
-
-				String filePath = staffbean.getImage_path();
-				String[] parts = filePath.split("base64,");
-				String part2 = parts[1]; // 034556
-				int rand = RandomUtils.nextInt();
-				imageName = staffbean.getStaff_name() + rand + ".png";
-				String directory = request.getServletContext().getRealPath(
-						Assets.STAFF_UPLOAD_PATH + imageName);
-				byte[] imageByteArray = Base64.decodeBase64(part2);
-				FileOutputStream imageOutFile = new FileOutputStream(directory);
-				imageOutFile.write(imageByteArray);
-				imageOutFile.close();
-			} else {
-				imageName = "";
-			}
-
-			StaffModel staffmodel = new StaffModel();
-			staffmodel.setAddress(staffbean.getAddress());
-			staffmodel.setDept_id(staffbean.getDept_id());
-			staffmodel.setEducation(staffbean.getEducation());
-			staffmodel.setImage_path(imageName);
-			staffmodel.setStaff_contact(staffbean.getStaff_contact());
-			staffmodel.setStaff_email(staffbean.getStaff_email());
-			staffmodel.setStaff_id(staffbean.getStaff_id());
-			staffmodel.setStaff_name(staffbean.getStaff_name());
-			staffmodel.setStaff_lname(staffbean.getStaff_lname());
-			staffservice.editStaffById(staffbean.getStaff_id(), staffmodel);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return new ModelAndView("redirect:manageStaff");
-	}
-
-	@RequestMapping(value = "school/deleteStaff", method = RequestMethod.GET)
-	public ModelAndView editEmployee(
-			@ModelAttribute("command") StaffBean staffbean,
-			BindingResult result, ModelMap modelH) {
-
-		staffservice.deleteStaff(staffbean.getStaff_id());
-		return new ModelAndView("redirect:manageStaff");
-
-	}
-
-	@RequestMapping(value = "school/schoolInfomation", method = RequestMethod.GET)
-	public ModelAndView schoolInfomation(
-			@ModelAttribute("command") SchoolBean schoolbean,
-			BindingResult result, HttpServletRequest request, ModelMap model) {
-		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole")!= "Manager")
-		{
-		 return new ModelAndView("redirect:/login.html");
-		}
-		int user_id = (Integer) session.getAttribute("user_id");
-		LoginModel found = schoolservice.getUserById(user_id);
-		model.put("countries", prepareListofBean(schoolservice.listCountry()));
-		SchoolModel schoolinfo = (SchoolModel) schoolservice
-				.getSchoolById(found.getSchool_id());
-		model.addAttribute("schoolModel", schoolinfo);
-
-		model.addAttribute("heading", "School Information");
-
-		int school_id = (Integer) session.getAttribute("schoolId");
-		model.put("school_details", schoolservice.getSchoolById(school_id));
-		return new ModelAndView("school/school_infomation");
-	}
+//	@RequestMapping(value = "school/schoolInfomation", method = RequestMethod.GET)
+//	public ModelAndView schoolInfomation(
+//			@ModelAttribute("command") SchoolBean schoolbean,
+//			BindingResult result, HttpServletRequest request, ModelMap model) {
+//		HttpSession session = request.getSession();
+//		if (session.getAttribute("userRole")!= "Manager")
+//		{
+//		 return new ModelAndView("redirect:/login.html");
+//		}
+//		int user_id = (Integer) session.getAttribute("user_id");
+//		LoginModel found = schoolservice.getUserById(user_id);
+//		model.put("countries", prepareListofBean(schoolservice.listCountry()));
+//		SchoolModel schoolinfo = (SchoolModel) schoolservice
+//				.getSchoolById(found.getSchool_id());
+//		model.addAttribute("schoolModel", schoolinfo);
+//
+//		model.addAttribute("heading", "School Information");
+//
+//		int school_id = (Integer) session.getAttribute("schoolId");
+//		model.put("school_details", schoolservice.getSchoolById(school_id));
+//		return new ModelAndView("school/school_infomation");
+//	}
 
 	/**
 	 * Method for get City by state id
@@ -2002,38 +1787,38 @@ public class SchoolAdminController {
 		return beans;
 	}
 
-	/**
-	 * Function for Update School Information
-	 **/
-	@RequestMapping(value = "school/schoolInfomation", method = RequestMethod.POST)
-	public ModelAndView schoolInfomation(
-			@ModelAttribute("command") SchoolBean school, BindingResult result,
-			ModelMap model, HttpServletRequest request) {
-		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole")!= "Manager")
-		{
-		 return new ModelAndView("redirect:/login.html");
-		}
-		SchoolModel schoolmodel = new SchoolModel();
-		schoolmodel.setCity(school.getCity());
-		schoolmodel.setCountry(school.getCountry());
-		schoolmodel.setPrincipal_contact(school.getPrincipal_contact());
-		schoolmodel.setPrincipal_name(school.getPrincipal_name());
-		schoolmodel.setSchool_name(school.getSchool_name());
-		schoolmodel.setZip_code(school.getZip_code());
-		int user_id = (Integer) session.getAttribute("user_id");
-		LoginModel found = schoolservice.getUserById(user_id);
-		schoolservice.editSchoolById(found.getSchool_id(), schoolmodel);
-		model.addAttribute("success", "School information updated successfully");
-
-		model.put("countries", prepareListofBean(schoolservice.listCountry()));
-		SchoolModel schoolinfo = (SchoolModel) schoolservice
-				.getSchoolById(found.getSchool_id());
-		model.addAttribute("schoolModel", schoolinfo);
-
-		model.addAttribute("heading", "School Information");
-		return new ModelAndView("school/school_infomation");
-	}
+//	/**
+//	 * Function for Update School Information
+//	 **/
+//	@RequestMapping(value = "school/schoolInfomation", method = RequestMethod.POST)
+//	public ModelAndView schoolInfomation(
+//			@ModelAttribute("command") SchoolBean school, BindingResult result,
+//			ModelMap model, HttpServletRequest request) {
+//		HttpSession session = request.getSession();
+//		if (session.getAttribute("userRole")!= "Manager")
+//		{
+//		 return new ModelAndView("redirect:/login.html");
+//		}
+//		SchoolModel schoolmodel = new SchoolModel();
+//		schoolmodel.setCity(school.getCity());
+//		schoolmodel.setCountry(school.getCountry());
+//		schoolmodel.setPrincipal_contact(school.getPrincipal_contact());
+//		schoolmodel.setPrincipal_name(school.getPrincipal_name());
+//		schoolmodel.setSchool_name(school.getSchool_name());
+//		schoolmodel.setZip_code(school.getZip_code());
+//		int user_id = (Integer) session.getAttribute("user_id");
+//		LoginModel found = schoolservice.getUserById(user_id);
+//		schoolservice.editSchoolById(found.getSchool_id(), schoolmodel);
+//		model.addAttribute("success", "School information updated successfully");
+//
+//		model.put("countries", prepareListofBean(schoolservice.listCountry()));
+//		SchoolModel schoolinfo = (SchoolModel) schoolservice
+//				.getSchoolById(found.getSchool_id());
+//		model.addAttribute("schoolModel", schoolinfo);
+//
+//		model.addAttribute("heading", "School Information");
+//		return new ModelAndView("school/school_infomation");
+//	}
 
 	/**
 	 * Function for add Driver
@@ -2109,14 +1894,20 @@ public class SchoolAdminController {
 					String part2 = parts[1]; // 034556
 					int rand = RandomUtils.nextInt();
 					imageName = driverbean.getContact_number() + rand + ".png";
-					String directory = request.getServletContext().getRealPath(
-							Assets.DRIVER_UPLOAD_PATH + imageName);
+					String directory =  Assets.DRIVER_UPLOAD_PATH + imageName ;
 					byte[] imageByteArray = Base64.decodeBase64(part2);
 					// Write a image byte array into file system
 					FileOutputStream imageOutFile = new FileOutputStream(
 							directory);
 					imageOutFile.write(imageByteArray);
 					imageOutFile.close();
+					
+					//TO DO : delete after update app 
+					String directory2 = request.getServletContext().getRealPath(	Assets.DRIVER_UPLOAD_PATH_to_del + imageName );
+					FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
+					imageOutFile2.write(imageByteArray);
+					imageOutFile2.close();
+					
 				} else {
 					imageName = "";
 				}
@@ -2171,10 +1962,9 @@ public class SchoolAdminController {
 				String qr_text = ""+insert_id+"";
 				ByteArrayOutputStream out = QRCode.from(qr_text)
 						.to(ImageType.PNG).stream();
-				String qr_directory = request.getServletContext()
-						.getRealPath(
-								Assets.STUDENT_QR_PATH + "d_" + insert_id
-										+ ".png");
+				String qr_directory = 
+								Assets.STUDENT_QR_PATH_SYS + "d_" + insert_id
+										+ ".png" ;
 				
 				FileOutputStream fout = new FileOutputStream(new File(
 						qr_directory));
@@ -2228,13 +2018,12 @@ public class SchoolAdminController {
 							System.out.println(fileName.toString());
 							String[] fn = fileName.toString().split("\\.");
 							int rand = RandomUtils.nextInt();
-							String directory = request.getServletContext()
-									.getRealPath(
-											Assets.INSURANCE_CARD_COPY
+							String directory = 
+											Assets.INSURANCE_CARD_COPY_SYS
 													+ rand
 													+ driverbean
 															.getDriver_fname()
-													+ "." + fn[1]);
+													+ "." + fn[1] ;
 							new_file_name += rand
 									+ driverbean.getDriver_fname() + "."
 									+ fn[1] + ",";
@@ -2451,13 +2240,19 @@ public class SchoolAdminController {
 				String part2 = parts[1]; // 034556
 				int rand = RandomUtils.nextInt();
 				imageName = driverbean.getContact_number() + rand + ".png";
-				String directory = request.getServletContext().getRealPath(
-						Assets.DRIVER_UPLOAD_PATH + imageName);
+				String directory =  Assets.DRIVER_UPLOAD_PATH + imageName ;
 				byte[] imageByteArray = Base64.decodeBase64(part2);
 				System.out.println(directory);
 				FileOutputStream imageOutFile = new FileOutputStream(directory);
 				imageOutFile.write(imageByteArray);
 				imageOutFile.close();
+				
+				//TO DO : delete after update app 
+				String directory2 = request.getServletContext().getRealPath(	Assets.DRIVER_UPLOAD_PATH_to_del + imageName ) ;
+				FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
+				imageOutFile2.write(imageByteArray);
+				imageOutFile2.close();
+				
 			} else {
 				imageName = "";
 
@@ -2556,10 +2351,8 @@ public class SchoolAdminController {
 							byte[] bytes = fileName.getBytes();
 							String[] fn = fileName.toString().split("\\.");
 							int rand = RandomUtils.nextInt();
-							String directory = request
-									.getServletContext()
-									.getRealPath(
-											Assets.INSURANCE_CARD_COPY+rand + fn[0] + "." + fn[1]);
+							String directory = 
+											Assets.INSURANCE_CARD_COPY_SYS+rand + fn[0] + "." + fn[1];
 							new_file_name += rand + fn[0] + "." + fn[1]
 									+ ",";
 							System.out.println(directory);
@@ -2679,19 +2472,11 @@ public class SchoolAdminController {
 	/**
 	 * Function for add route
 	 **/
-	/*
-	 * @RequestMapping(value = "school/addRoute", method = RequestMethod.GET)
-	 * public ModelAndView addRoute(@ModelAttribute("command") DriverBean
-	 * driverbean, BindingResult result) {
-	 * 
-	 * System.out.println("here"); Map<String, Object> model = new
-	 * HashMap<String, Object>(); model.put("heading","Bus Route"); return new
-	 * ModelAndView("school/add_route",model); }
-	 */
 	@RequestMapping(value = "school/addRoute", method = RequestMethod.GET)
 	public ModelAndView addRoute(
 			@ModelAttribute("command") DriverBean driverbean,
 			BindingResult result, HttpServletRequest request) {
+		
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("heading", "Bus Route");
 		HttpSession session = request.getSession();
@@ -2700,11 +2485,20 @@ public class SchoolAdminController {
 		 return new ModelAndView("redirect:/login.html");
 		}
 		int school_id = (Integer) session.getAttribute("schoolId");
-		model.put("school_details", schoolservice.getSchoolById(school_id));
-		model.put("students",
-				getStudentList(schoolservice.listStudent(school_id)));
+		SchoolModel school = schoolservice.getSchoolById(school_id);
+		
+		model.put("school_details", school);
+
+		RouteBean route = new RouteBean() ;
+		route.setSource_lat(school.getSchool_lat());
+		route.setSource_lng(school.getSchool_lng());
+		route.setDestination_lat(school.getSchool_lat());
+		route.setDestination_lng(school.getSchool_lng());
+		model.put("route",  route)  ;
+		
 		return new ModelAndView("school/add_route_details", model);
 	}
+
 
 	/**
 	 * Function for add new route
@@ -2713,67 +2507,36 @@ public class SchoolAdminController {
 	public ModelAndView addRoute(@ModelAttribute("command") RouteBean route,
 			BindingResult result, ModelMap model, HttpServletRequest request) {
 		try {
-			String url = Assets.URL;
 			HttpSession session = request.getSession();
-			if (session.getAttribute("userRole")!= "Manager")
-			{
-			 return new ModelAndView("redirect:/login.html");
-			}
+			
 			int school_id = (Integer) session.getAttribute("schoolId");
 			model.put("school_details", schoolservice.getSchoolById(school_id));
 			RouteModel routemodel = new RouteModel();
-			GoogleResponse res = convertToLatLong(route.getSource());
-			if (res.getStatus().equals("OK")) {
-				for (Result result1 : res.getResults()) {
-					System.out.println("Location is "
-							+ result1.getGeometry().getLocation_type());
-					routemodel.setSource_lat(result1.getGeometry()
-							.getLocation().getLat());
-					routemodel.setSource_lng(result1.getGeometry()
-							.getLocation().getLng());
-					model.addAttribute("source_lat", result1.getGeometry()
-							.getLocation().getLat());
-					model.addAttribute("source_lng", result1.getGeometry()
-							.getLocation().getLng());
-				}
-			}
-			GoogleResponse res1 = convertToLatLong(route.getDestination());
-			if (res.getStatus().equals("OK")) {
-				for (Result result2 : res1.getResults()) {
-					System.out.println("Location is "
-							+ result2.getGeometry().getLocation_type());
-					routemodel.setDestination_lat(result2.getGeometry()
-							.getLocation().getLat());
-					routemodel.setDestination_lng(result2.getGeometry()
-							.getLocation().getLng());
-					model.addAttribute("destination_lat", result2.getGeometry()
-							.getLocation().getLat());
-					model.addAttribute("destination_lng", result2.getGeometry()
-							.getLocation().getLng());
-				}
-			}
+           
+			System.out.println("Source_: " +  route.getSource_lat() +" --- " +  route.getSource_lng());
+			System.out.println("Destination: " +  route.getDestination_lat() +" --- " + route.getDestination_lng());
 
+			routemodel.setDestination_lat( route.getDestination_lat() );
+			routemodel.setDestination_lng( route.getDestination_lng() );
+			routemodel.setSource_lat( route.getSource_lat() );
+			routemodel.setSource_lng( route.getSource_lng() );
+			
 			routemodel.setSource(route.getSource());
 			routemodel.setDestination(route.getDestination());
 			routemodel.setRoute_id(null);
 			routemodel.setRoute_name(route.getRoute_name());
 			routemodel.setSchool_id(school_id);
 			routemodel.setNote(route.getNote());
-			routemodel.setRadius("");
 			routemodel.setSource_note(route.getSource_note());
 			routemodel.setDestination_note(route.getDestination_note());
+			routemodel.setRadius("");
 			long route_id = schoolservice.addRoute(routemodel);
-			model.addAttribute("source", route.getSource());
-			model.addAttribute("destination", route.getDestination());
-			model.addAttribute("route_id", route_id);
-			model.addAttribute("success", "success");
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		// return new ModelAndView("school/add_route");
-		return new ModelAndView("school/add_route_details",model);
-		//return new ModelAndView("redirect:allRoute");
+		
+		return new ModelAndView("redirect:allRoute");
 	}
 
 	public GoogleResponse convertToLatLong(String fullAddress)
@@ -2817,15 +2580,19 @@ public class SchoolAdminController {
 		 * from a device with a location sensor. This value must be either true
 		 * or false.
 		 */
-		URL url = new URL(Assets.URL + "?latlng="
-				+ URLEncoder.encode(latlongString, "UTF-8") + "&sensor=false");
+		URL url = new URL(Assets.URL + "?latlng="+ URLEncoder.encode(latlongString, "UTF-8") + "&sensor=false");
+		System.out.println("GOOGLE MASP >> " +url );
+		
+		
 		// Open the Connection
 		URLConnection conn = url.openConnection();
 
 		InputStream in = conn.getInputStream();
 		ObjectMapper mapper = new ObjectMapper();
-		GoogleResponse response = (GoogleResponse) mapper.readValue(in,
-				GoogleResponse.class);
+		GoogleResponse response = (GoogleResponse) mapper.readValue(in , GoogleResponse.class);
+		System.out.println("GOOGLE MASP STATUS >> " +response.getStatus() );
+		System.out.println("GOOGLE MASP STATUS >> " +response.getResults() );
+
 		in.close();
 		return response;
 
@@ -2900,12 +2667,16 @@ public class SchoolAdminController {
 			{
 			 return new ModelAndView("redirect:/login.html");
 			}
-			model.put("latlong",
-					getAllLatLng(schoolservice.listLatLng(route_id)));
+			model.put("latlong", getAllLatLng(schoolservice.listLatLng(route_id)));
 			model.put("heading", "Edit Route");
 			model.put("route", routemodel);
 			int school_id = (Integer) session.getAttribute("schoolId");
-			model.put("school_details", schoolservice.getSchoolById(school_id));
+
+			SchoolModel school = schoolservice.getSchoolById(school_id);
+
+			model.put("school_details", school);
+
+			
 			return new ModelAndView("school/edit_route", model);
 		} else {
 			return new ModelAndView("redirect:allRoute");
@@ -2970,51 +2741,21 @@ public class SchoolAdminController {
 	public ModelAndView editRoutepost(
 			@ModelAttribute("command") RouteBean route, RouteLatLng latlng,
 			BindingResult result, HttpServletRequest request, ModelMap model) {
-		try{
-			String q=request.getParameter("q");
-			byte[] decodedBytes = Base64.decodeBase64(""+q+"");
-			int route_id=Integer.parseInt(new String(decodedBytes));	
 		
 		try {
 			
-			String url = Assets.URL;
-			HttpSession session = request.getSession();
-			if (session.getAttribute("userRole")!= "Manager")
-			{
-			 return new ModelAndView("redirect:/login.html");
-			}
-			int school_id = (Integer) session.getAttribute("schoolId");
+		     String route_id_str=request.getParameter("id");
+		     byte[] decodedBytes = Base64.decodeBase64(""+route_id_str+"");
+		     int route_id=Integer.parseInt(new String(decodedBytes));
+				int school_id = (Integer) request.getSession() .getAttribute("schoolId");
+
+			
 			RouteModel routemodel = new RouteModel();
-			GoogleResponse res = convertToLatLong(route.getSource());
-			if (res.getStatus().equals("OK")) {
-				for (Result result1 : res.getResults()) {
-					System.out.println("Location is "
-							+ result1.getGeometry().getLocation_type());
-					routemodel.setSource_lat(result1.getGeometry()
-							.getLocation().getLat());
-					routemodel.setSource_lng(result1.getGeometry()
-							.getLocation().getLng());
-					model.addAttribute("source_lat", result1.getGeometry()
-							.getLocation().getLat());
-					model.addAttribute("source_lng", result1.getGeometry()
-							.getLocation().getLng());
-				}
-			}
-			GoogleResponse res1 = convertToLatLong(route.getDestination());
-			if (res.getStatus().equals("OK")) {
-				for (Result result2 : res1.getResults()) {
-					System.out.println("Location is "
-							+ result2.getGeometry().getLocation_type());
-					routemodel.setDestination_lat(result2.getGeometry()
-							.getLocation().getLat());
-					routemodel.setDestination_lng(result2.getGeometry()
-							.getLocation().getLng());
-					model.addAttribute("destination_lat", result2.getGeometry()
-							.getLocation().getLat());
-					model.addAttribute("destination_lng", result2.getGeometry()
-							.getLocation().getLng());
-				}
-			}
+
+			routemodel.setDestination_lat( route.getDestination_lat() );
+			routemodel.setDestination_lng( route.getDestination_lng() );
+			routemodel.setSource_lat( route.getSource_lat() );
+			routemodel.setSource_lng( route.getSource_lng() );
 
 			routemodel.setSource(route.getSource());
 			routemodel.setDestination(route.getDestination());
@@ -3023,65 +2764,16 @@ public class SchoolAdminController {
 			routemodel.setNote(route.getNote());
 			routemodel.setSource_note(route.getSource_note());
 			routemodel.setDestination_note(route.getDestination_note());
+			
 			schoolservice.editRouteById(route_id, routemodel);
 			
-			model.addAttribute("source", route.getSource());
-			model.addAttribute("destination", route.getDestination());
-			model.addAttribute("route_id", route.getRoute_id());
-
-			RouteModel routemodel1 = schoolservice.getRouteById(route_id);
-
-			model.put("latlong",
-					getAllLatLng(schoolservice.listLatLng(route_id)));
-			model.put("heading", "Edit Route");
-			model.put("route", routemodel1);
-			model.put("success", "success");
-
-			/*
-			 * schoolservice.deleteLatLng(route.getRoute_id());
-			 * 
-			 * RouteLatLngModel routeLatLngmodel=new RouteLatLngModel(); String
-			 * lat=latlng.getLat(); String[] latArr=lat.split(",", -1); String
-			 * lng=latlng.getLng(); String[] lngArr=lng.split(",", -1); for (int
-			 * i = 0; i < latArr.length; i++) { routeLatLngmodel.setId(null);
-			 * routemodel.setSchool_id(school_id);
-			 * routemodel.setRoute_id(route.getRoute_id());
-			 * routeLatLngmodel.setLat(latArr[i]);
-			 * routeLatLngmodel.setLng(lngArr[i]);
-			 * schoolservice.addRouteLatLng(routeLatLngmodel); }
-			 */
-
-			model.put("school_details", schoolservice.getSchoolById(school_id));
-			ModelMap model_success=new ModelMap();
 		} catch (Exception e) {
-
+			e.printStackTrace();
 			System.out.println(e);
 		}
-
-		//return new ModelAndView("redirect:allRoute");
-		RouteModel routemodel = schoolservice.getRouteById(route_id);
-		if (routemodel != null) {
-			HttpSession session = request.getSession();
-			if (session.getAttribute("userRole")!= "Manager")
-			{
-			 return new ModelAndView("redirect:/login.html");
-			}
-			model.put("latlong",
-					getAllLatLng(schoolservice.listLatLng(route_id)));
-			model.put("heading", "Edit Route");
-			model.put("route", routemodel);
-			int school_id = (Integer) session.getAttribute("schoolId");
-			model.put("school_details", schoolservice.getSchoolById(school_id));
-			return new ModelAndView("school/edit_route", model);
-		} else {
-			return new ModelAndView("redirect:allRoute");
-		}
-		} catch (Exception e) {
-
-			return new ModelAndView("redirect:allRoute");
-		}
-
+		return new ModelAndView("redirect:allRoute");
 	}
+	
 
 	/**
 	 * Function for edit Route
@@ -3125,77 +2817,77 @@ public class SchoolAdminController {
 
 	}
 
-	@RequestMapping(value = "school/studentRoute", method = RequestMethod.GET)
-	public ModelAndView studentRoute(
-			@ModelAttribute("command") RouteBean route, BindingResult result,
-			HttpServletRequest request, ModelMap modelH) {
-		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole")!= "Manager")
-		{
-		 return new ModelAndView("redirect:/login.html");
-		}
-		modelH.addAttribute("heading", "Assign Route");
-		Map<String, Object> model = new HashMap<String, Object>();
-		int school_id = (Integer) session.getAttribute("schoolId");
-		model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
-		model.put("students",
-				getStudentList(schoolservice.listStudent(school_id)));
-		return new ModelAndView("school/assign_student_route", model);
-	}
-
-	@RequestMapping(value = "school/studentRoute", method = RequestMethod.POST)
-	public ModelAndView studentRoutePost(
-			@ModelAttribute("command") RouteLatLng route, BindingResult result,
-			HttpServletRequest request, ModelMap modelH) {
-
-		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole")!= "Manager")
-		{
-		 return new ModelAndView("redirect:/login.html");
-		}
-		System.out.println("here");
-		modelH.addAttribute("heading", "Assign Route");
-		Map<String, Object> model = new HashMap<String, Object>();
-		try {
-			int school_id = (Integer) session.getAttribute("schoolId");
-			RouteLatLngModel routelatlng = schoolservice.checkStudentRouteId(
-					route.getStudent_id(), school_id);
-			if (routelatlng == null) {
-				RouteLatLngModel routeNew = new RouteLatLngModel();
-				routeNew.setAddress(route.getAddress());
-				GoogleResponse res = convertToLatLong(route.getAddress());
-				if (res.getStatus().equals("OK")) {
-					for (Result result1 : res.getResults()) {
-						routeNew.setLat(result1.getGeometry().getLocation()
-								.getLat());
-						routeNew.setLng(result1.getGeometry().getLocation()
-								.getLng());
-					}
-				}
-				routeNew.setSchool_id(school_id);
-				routeNew.setStudent_id(route.getStudent_id());
-				routeNew.setRoute_id(route.getRoute_id());
-				routeNew.setId(null);
-				routeNew.setParent_id(route.getParent_id());
-				routeNew.setStudent_name(route.getStudent_name());
-				schoolservice.addAssignRoute(routeNew);
-				model.put("success", "Route Assigned successfully");
-
-			} else {
-
-				model.put("error", "You already assigned this student");
-			}
-			model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
-			model.put("students",
-					getStudentList(schoolservice.listStudent(school_id)));
-
-		} catch (Exception e) {
-			System.out.println(e);
-			e.printStackTrace();
-		}
-
-		return new ModelAndView("school/assign_student_route", model);
-	}
+//	@RequestMapping(value = "school/studentRoute", method = RequestMethod.GET)
+//	public ModelAndView studentRoute(
+//			@ModelAttribute("command") RouteBean route, BindingResult result,
+//			HttpServletRequest request, ModelMap modelH) {
+//		HttpSession session = request.getSession();
+//		if (session.getAttribute("userRole")!= "Manager")
+//		{
+//		 return new ModelAndView("redirect:/login.html");
+//		}
+//		modelH.addAttribute("heading", "Assign Route");
+//		Map<String, Object> model = new HashMap<String, Object>();
+//		int school_id = (Integer) session.getAttribute("schoolId");
+//		model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
+//		model.put("students",
+//				getStudentList(schoolservice.listStudent(school_id)));
+//		return new ModelAndView("school/assign_student_route", model);
+//	}
+//
+//	@RequestMapping(value = "school/studentRoute", method = RequestMethod.POST)
+//	public ModelAndView studentRoutePost(
+//			@ModelAttribute("command") RouteLatLng route, BindingResult result,
+//			HttpServletRequest request, ModelMap modelH) {
+//
+//		HttpSession session = request.getSession();
+//		if (session.getAttribute("userRole")!= "Manager")
+//		{
+//		 return new ModelAndView("redirect:/login.html");
+//		}
+//		System.out.println("here");
+//		modelH.addAttribute("heading", "Assign Route");
+//		Map<String, Object> model = new HashMap<String, Object>();
+//		try {
+//			int school_id = (Integer) session.getAttribute("schoolId");
+//			RouteLatLngModel routelatlng = schoolservice.checkStudentRouteId(
+//					route.getStudent_id(), school_id);
+//			if (routelatlng == null) {
+//				RouteLatLngModel routeNew = new RouteLatLngModel();
+//				routeNew.setAddress(route.getAddress());
+//				GoogleResponse res = convertToLatLong(route.getAddress());
+//				if (res.getStatus().equals("OK")) {
+//					for (Result result1 : res.getResults()) {
+//						routeNew.setLat(result1.getGeometry().getLocation()
+//								.getLat());
+//						routeNew.setLng(result1.getGeometry().getLocation()
+//								.getLng());
+//					}
+//				}
+//				routeNew.setSchool_id(school_id);
+//				routeNew.setStudent_id(route.getStudent_id());
+//				routeNew.setRoute_id(route.getRoute_id());
+//				routeNew.setId(null);
+//				routeNew.setParent_id(route.getParent_id());
+//				routeNew.setStudent_name(route.getStudent_name());
+//				schoolservice.addAssignRoute(routeNew);
+//				model.put("success", "Route Assigned successfully");
+//
+//			} else {
+//
+//				model.put("error", "You already assigned this student");
+//			}
+//			model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
+//			model.put("students",
+//					getStudentList(schoolservice.listStudent(school_id)));
+//
+//		} catch (Exception e) {
+//			System.out.println(e);
+//			e.printStackTrace();
+//		}
+//
+//		return new ModelAndView("school/assign_student_route", model);
+//	}
 
 	/**
 	 * Function for View Route
@@ -3234,61 +2926,61 @@ public class SchoolAdminController {
 
 	}
 
-	/**
-	 * Function for edit Student route
-	 **/
-	@RequestMapping(value = "school/editStudentRoute", method = RequestMethod.GET)
-	public ModelAndView editStudentRoute(
-			@ModelAttribute("command") RouteLatLng routelatlng,
-			BindingResult result, HttpServletRequest request, ModelMap modelH) {
-		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole")!= "Manager")
-		{
-		 return new ModelAndView("redirect:/login.html");
-		}
-		modelH.addAttribute("heading", "Assign Route");
-		Map<String, Object> model = new HashMap<String, Object>();
-		int school_id = (Integer) session.getAttribute("schoolId");
-		model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
-		return new ModelAndView("school/edit_assign_student_route", model);
-	}
+//	/**
+//	 * Function for edit Student route
+//	 **/
+//	@RequestMapping(value = "school/editStudentRoute", method = RequestMethod.GET)
+//	public ModelAndView editStudentRoute(
+//			@ModelAttribute("command") RouteLatLng routelatlng,
+//			BindingResult result, HttpServletRequest request, ModelMap modelH) {
+//		HttpSession session = request.getSession();
+//		if (session.getAttribute("userRole")!= "Manager")
+//		{
+//		 return new ModelAndView("redirect:/login.html");
+//		}
+//		modelH.addAttribute("heading", "Assign Route");
+//		Map<String, Object> model = new HashMap<String, Object>();
+//		int school_id = (Integer) session.getAttribute("schoolId");
+//		model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
+//		return new ModelAndView("school/edit_assign_student_route", model);
+//	}
 
-	/**
-	 * Function for Update Student Route
-	 * 
-	 * @throws IOException
-	 **/
-	@RequestMapping(value = "school/editStudentRoute", method = RequestMethod.POST)
-	public ModelAndView editStudentRoute(
-			@ModelAttribute("command") RouteLatLng route, BindingResult result,
-			ModelMap modelH, HttpServletRequest request) throws IOException {
-		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole")!= "Manager")
-		{
-		 return new ModelAndView("redirect:/login.html");
-		}
-		RouteLatLngModel latlngmodel = new RouteLatLngModel();
-		latlngmodel.setAddress(route.getAddress());
-		GoogleResponse res = convertToLatLong(route.getAddress());
-		if (res.getStatus().equals("OK")) {
-			for (Result result1 : res.getResults()) {
-				latlngmodel
-						.setLat(result1.getGeometry().getLocation().getLat());
-				latlngmodel
-						.setLng(result1.getGeometry().getLocation().getLng());
-			}
-		}
-
-		schoolservice.editStudentRoute(route.getStudent_id(), latlngmodel);
-		modelH.addAttribute("heading", "Assign Route");
-		Map<String, Object> model = new HashMap<String, Object>();
-		int school_id = (Integer) session.getAttribute("schoolId");
-		model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
-		model.put("success", "Student Route Updated successfully");
-
-		model.put("heading", "Edit Student Route");
-		return new ModelAndView("school/edit_assign_student_route", model);
-	}
+//	/**
+//	 * Function for Update Student Route
+//	 * 
+//	 * @throws IOException
+//	 **/
+//	@RequestMapping(value = "school/editStudentRoute", method = RequestMethod.POST)
+//	public ModelAndView editStudentRoute(
+//			@ModelAttribute("command") RouteLatLng route, BindingResult result,
+//			ModelMap modelH, HttpServletRequest request) throws IOException {
+//		HttpSession session = request.getSession();
+//		if (session.getAttribute("userRole")!= "Manager")
+//		{
+//		 return new ModelAndView("redirect:/login.html");
+//		}
+//		RouteLatLngModel latlngmodel = new RouteLatLngModel();
+//		latlngmodel.setAddress(route.getAddress());
+//		GoogleResponse res = convertToLatLong(route.getAddress());
+//		if (res.getStatus().equals("OK")) {
+//			for (Result result1 : res.getResults()) {
+//				latlngmodel
+//						.setLat(result1.getGeometry().getLocation().getLat());
+//				latlngmodel
+//						.setLng(result1.getGeometry().getLocation().getLng());
+//			}
+//		}
+//
+//		schoolservice.editStudentRoute(route.getStudent_id(), latlngmodel);
+//		modelH.addAttribute("heading", "Assign Route");
+//		Map<String, Object> model = new HashMap<String, Object>();
+//		int school_id = (Integer) session.getAttribute("schoolId");
+//		model.put("routes", getAllRoute(schoolservice.listRoute(school_id)));
+//		model.put("success", "Student Route Updated successfully");
+//
+//		model.put("heading", "Edit Student Route");
+//		return new ModelAndView("school/edit_assign_student_route", model);
+//	}
 
 	@RequestMapping(value = "school/deleteRoute", method = RequestMethod.GET)
 	public ModelAndView deleteRoute(@ModelAttribute("command") RouteBean route,
@@ -3976,8 +3668,8 @@ public class SchoolAdminController {
 				schoolservice.addParent(schooladminmodel);
 				System.out.println("Here");
 				Sms_api sms = new Sms_api();
-				sms.sendhttp("Your login details are username=" + username
-						+ " and password=" + password, 0,
+				sms.sendMsg("Your login details are username=" + username
+						+ " and password=" + password, 
 						schooladmin.getContact_number());
 				model.addAttribute("username", username);
 				model.addAttribute("password", password);
@@ -4259,7 +3951,7 @@ public class SchoolAdminController {
 
 		schoolservice.deleteHoliday(holiday.getH_id());
 		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("staffs", getStaffList(staffservice.getAllStaff()));
+		model.put("staffs", new ArrayList() );
 		model.put("success", "Holiday deleted successfully");
 		return new ModelAndView("redirect:manageHoliday", model);
 
@@ -4343,7 +4035,7 @@ public class SchoolAdminController {
 		String current_url = parent.getUser_pass() + "?q=" +new String(encodedBytes);;
 		String message = parent.getSchool_name();
 		Sms_api sms = new Sms_api();
-		sms.sendhttp(message, 0, contact_number);
+		sms.sendMsg(message,  contact_number);
 
 		return new ModelAndView("redirect:" + current_url);
 	}
@@ -4501,25 +4193,7 @@ public class SchoolAdminController {
 		return beans;
 	}
 
-	/**
-	 * Function for chatting in super admin with school admin
-	 **/
-	@RequestMapping(value = "school/chatting", method = RequestMethod.GET)
-	public ModelAndView chatting(
-			@ModelAttribute("command") StudentBean studentbean,
-			BindingResult result, ModelMap model, HttpServletRequest request) {
-		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole")!= "Manager")
-		{
-		 return new ModelAndView("redirect:/login.html");
-		}
-		int user_id = (Integer) session.getAttribute("user_id");
-		//model.put("school_admins",getAdminList(schoolservice.adminList(), user_id));
-		model.put("school_admins",getAdminListLatest(schoolservice.adminListLatest(), user_id));
-		int school_id = (Integer) session.getAttribute("schoolId");
-		model.put("school_details", schoolservice.getSchoolById(school_id));
-		return new ModelAndView("school/chatting", model);
-	}
+
 	
 	private List<LoginBean> getAdminListLatest(List<LoginModel> vehicles,int user_id) {
 
@@ -4588,26 +4262,26 @@ public class SchoolAdminController {
 		return beans;
 	}
 
-	/**
-	 * Function for chatting between parent and school admin
-	 **/
-	@RequestMapping(value = "school/chattingToParent", method = RequestMethod.GET)
-	public ModelAndView chattingToParent(
-			@ModelAttribute("command") StudentBean studentbean,
-			BindingResult result, ModelMap model, HttpServletRequest request) {
-		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole")!= "Manager")
-		{
-		 return new ModelAndView("redirect:/login.html");
-		}
-		int user_id = (Integer) session.getAttribute("user_id");
-		int school_id = (Integer) session.getAttribute("schoolId");
-		//model.put("school_admins", getParentListNew(studentservice.listParent(school_id), user_id));
-		model.put("school_admins",getAdminListLatest(schoolservice.parentListLatest(school_id), user_id));
-		model.put("school_details", schoolservice.getSchoolById(school_id));
-		return new ModelAndView("school/chattingParent", model);
-	}
-	
+//	/**
+//	 * Function for chatting between parent and school admin
+//	 **/
+//	@RequestMapping(value = "school/chattingToParent", method = RequestMethod.GET)
+//	public ModelAndView chattingToParent(
+//			@ModelAttribute("command") StudentBean studentbean,
+//			BindingResult result, ModelMap model, HttpServletRequest request) {
+//		HttpSession session = request.getSession();
+//		if (session.getAttribute("userRole")!= "Manager")
+//		{
+//		 return new ModelAndView("redirect:/login.html");
+//		}
+//		int user_id = (Integer) session.getAttribute("user_id");
+//		int school_id = (Integer) session.getAttribute("schoolId");
+//		//model.put("school_admins", getParentListNew(studentservice.listParent(school_id), user_id));
+//		model.put("school_admins",getAdminListLatest(schoolservice.parentListLatest(school_id), user_id));
+//		model.put("school_details", schoolservice.getSchoolById(school_id));
+//		return new ModelAndView("school/chattingParent", model);
+//	}
+//	
 	/**
 	 * Function for chatting between parent and school admin
 	 **/
@@ -4659,29 +4333,29 @@ public class SchoolAdminController {
 		return beans;
 	}
 
-	/**
-	 * Function for chatting between parent and school admin
-	 **/
-	@RequestMapping(value = "school/chattingToDriver", method = RequestMethod.GET)
-	public ModelAndView chattingToDriver(
-			@ModelAttribute("command") StudentBean studentbean,
-			BindingResult result, ModelMap model, HttpServletRequest request) {
-		HttpSession session = request.getSession();
-		if (session.getAttribute("userRole")!= "Manager")
-		{
-		 return new ModelAndView("redirect:/login.html");
-		}
-		int user_id = (Integer) session.getAttribute("user_id");
-		int school_id = (Integer) session.getAttribute("schoolId");
-		// model.put("school_admins",
-		// getDriversList(schoolservice.listDriver(school_id)));
-		model.put("school_details", schoolservice.getSchoolById(school_id));
-	    //model.put("school_admins",getDriversListNew(schoolservice.listDriver(school_id), user_id));
-		model.put("school_admins",getDriversListNew(schoolservice.listDriverLatest(school_id), user_id));
-		
-		//model.put("school_admins",getAdminListLatest(schoolservice.parentListLatest(school_id), user_id));
-		return new ModelAndView("school/chatting_driver", model);
-	}
+//	/**
+//	 * Function for chatting between parent and school admin
+//	 **/
+//	@RequestMapping(value = "school/chattingToDriver", method = RequestMethod.GET)
+//	public ModelAndView chattingToDriver(
+//			@ModelAttribute("command") StudentBean studentbean,
+//			BindingResult result, ModelMap model, HttpServletRequest request) {
+//		HttpSession session = request.getSession();
+//		if (session.getAttribute("userRole")!= "Manager")
+//		{
+//		 return new ModelAndView("redirect:/login.html");
+//		}
+//		int user_id = (Integer) session.getAttribute("user_id");
+//		int school_id = (Integer) session.getAttribute("schoolId");
+//		// model.put("school_admins",
+//		// getDriversList(schoolservice.listDriver(school_id)));
+//		model.put("school_details", schoolservice.getSchoolById(school_id));
+//	    //model.put("school_admins",getDriversListNew(schoolservice.listDriver(school_id), user_id));
+//		model.put("school_admins",getDriversListNew(schoolservice.listDriverLatest(school_id), user_id));
+//		
+//		//model.put("school_admins",getAdminListLatest(schoolservice.parentListLatest(school_id), user_id));
+//		return new ModelAndView("school/chatting_driver", model);
+//	}
 	
 	/**
 	 * Function for chatting between parent and school admin
@@ -4850,7 +4524,7 @@ public class SchoolAdminController {
 		String message = parent.getSchool_name();
 		System.out.println(message);
 		Sms_api sms = new Sms_api();
-		sms.sendhttp(message, 0, contact_number);
+		sms.sendMsg(message, contact_number);
 
 		return new ModelAndView("redirect:" + current_url);
 	}
@@ -4871,7 +4545,7 @@ public class SchoolAdminController {
 		String current_url = "/school/addDriver/";
 		String message = parent.getFirst_name();
 		Sms_api sms = new Sms_api();
-		sms.sendhttp(message, 0, contact_number);
+		sms.sendMsg(message,  contact_number);
 
 		return new ModelAndView("redirect:" + current_url);
 	}
@@ -4893,7 +4567,7 @@ public class SchoolAdminController {
 		String current_url = "/school/addParent/";
 		String message = parent.getFirst_name();
 		Sms_api sms = new Sms_api();
-		sms.sendhttp(message, 0, contact_number);
+		sms.sendMsg(message,  contact_number);
 
 		return new ModelAndView("redirect:" + current_url);
 	}
@@ -5595,7 +5269,7 @@ public class SchoolAdminController {
 			DriverModel drivermodel =null;
 			RouteModel routemodel =new RouteModel();
 			HttpSession session = request.getSession();
-			int school_id = (Integer) session.getAttribute("new_school_id");
+			int school_id = (Integer) session.getAttribute("schoolId");
 			model.put("drivers",getDriversList(schoolservice.listDriver(school_id)));
 			routemodel = schoolservice.getRouteById(0);
 			if (routemodel != null) {

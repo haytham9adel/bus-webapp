@@ -226,23 +226,7 @@
         <div class="container">
         <jsp:include page="sidebar.jsp" />
 <script>
-    	<%-- $(document).ready(function(){
-    		$("#lang_switcher").click(function(){
-    			var pathname = window.location.pathname; // Returns path only
-        		var url      = window.location.href;     // Returns full URL
-        	 	var base_url = "<%=Assets.BASE_URL%>";
-				var new_url = url.replace(base_url,'');
-				window.location = "<%=Assets.BASE_URL_AR%>"+new_url;
-			});
-    	}); --%>
-    	$(document).ready(function(){
-    		$("#lang_switcher").click(function(){
-    			var pathname = window.location.pathname; // Returns path only
-        		var url      = window.location.href;     // Returns full URL
-        	 	var base_url = "<%=Assets.BASE_URL%>";
-				var new_url = url.replace(base_url,'');
-				window.location = "<%=Assets.BASE_URL_AR%>parent/langSwitcher?q="+new_url+"&u=<%=session.getAttribute("user_id")%>";
-			});
-    	});
+    	
+    	
     	
 </script>

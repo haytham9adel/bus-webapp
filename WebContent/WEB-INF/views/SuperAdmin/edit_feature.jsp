@@ -28,6 +28,12 @@
        </div>
 </div>   
 <div class="form-group">
+     <label class="col-sm-12 control-label"><b>Arabic Title:</label>
+       <div class="col-sm-12">
+       	<input type="text" class="form-control"value="${feature_model.title_ar}" name="title_ar" id="title_ar">
+       </div>
+</div> 
+<div class="form-group">
 	<label class="col-sm-12 control-label"><b>Image: </b> in size(222x222)px</label>
 	<div class="col-sm-12">
 	<c:choose>
@@ -53,6 +59,12 @@
        <textarea class="form-control" name="content" id="content" rows="8">${feature_model.content}</textarea>
        </div>
 </div> 
+<div class="form-group">
+     <label class="col-sm-12 control-label"><b>Arabic Content:</b></label>
+       <div class="col-sm-12">
+       <textarea class="form-control" name="content_ar" id="content_ar">${feature_model.content_ar}</textarea>
+       </div>
+</div>
 <div class="form-group">
        <div class="col-sm-12">
        <input type="submit" value="Update" class="btn btn-primary btn-submit">

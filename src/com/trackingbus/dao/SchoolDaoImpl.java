@@ -813,6 +813,11 @@ public class SchoolDaoImpl implements SchoolDao {
 	@Override
 	public void editRouteById(int route_id, RouteModel routemodel) {
 		// TODO Auto-generated method stub
+		
+		System.out.println("source " + routemodel.getSource() );
+		System.out.println("source lang " + routemodel.getSource_lng() );
+		System.out.println("source lat " + routemodel.getSource_lat());
+
 		sessionFactory
 				.getCurrentSession()
 				.createQuery(
@@ -2060,6 +2065,7 @@ public class SchoolDaoImpl implements SchoolDao {
 	@Override
 	public void addFeature(FeaturesModel feature_model) {
 		// TODO Auto-generated method stub
+		
 		sessionFactory.getCurrentSession().saveOrUpdate(feature_model);
 	}
 	@Override
@@ -2150,6 +2156,8 @@ public class SchoolDaoImpl implements SchoolDao {
 		.createQuery("update FeaturesModel set "
 				+ "title='"+s_Model.getTitle()
 				+"',content='"+s_Model.getContent()
+				+"',title_ar='"+s_Model.getTitle_ar()
+				+"',content_ar='"+s_Model.getContent_ar()
 				+"',image_path='"+s_Model.getImage_path()
 				+"',category_type='"+s_Model.getCategory_type()
 				+"' where  features_id="+feature_id+"").executeUpdate();

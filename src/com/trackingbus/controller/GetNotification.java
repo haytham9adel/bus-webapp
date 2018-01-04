@@ -42,37 +42,47 @@ public class GetNotification extends HandlerInterceptorAdapter {
 			if(session.getAttribute("new_school_id")!=null)
 			{
 				
-				int user_id=(Integer) session.getAttribute("user_id");
+				
 				int school_id = (Integer) session.getAttribute("new_school_id");
 				int total_notification = schoolservice.vehicleNotification(school_id).size();
 				request.setAttribute("notification", total_notification);
+				
 				request.setAttribute("notification_vehicle",prepareListOfVehicleDoc(schoolservice.getVehicleNotification(school_id)));
 				request.setAttribute("notification_vehicle_count",schoolservice.getVehicleNotificationCount(school_id).size());
-				request.setAttribute("total_message_notification_count", schoolservice.getMessageAdminNotification(user_id).size());
-				request.setAttribute("total_message_notification", prepareListOfMessage(schoolservice.getMessageAdminNotification(user_id)));
+				request.setAttribute("total_message_notification_count", 0 );
+				// request.setAttribute("total_message_notification", prepareListOfMessage(schoolservice.getMessageAdminNotification(user_id)));
 		
 				
-			}else if(session.getAttribute("schoolId")!=null)
-			{
+			}
+			else if(session.getAttribute("schoolId")!=null) {
 				
 				int user_id=(Integer) session.getAttribute("user_id");
 				int school_id = (Integer) session.getAttribute("schoolId");
 				int total_notification = schoolservice.vehicleNotification(school_id).size();
-				System.out.println("Total Size="+schoolservice.getVehicleNotification(school_id).size());
-				request.setAttribute("notification_vehicle",prepareListOfVehicleDoc(schoolservice.getVehicleNotification(school_id)));
+				
 				request.setAttribute("notification", total_notification);
-				request.setAttribute("notification_vehicle_count",schoolservice.getVehicleNotificationCount(school_id).size());
-				request.setAttribute("total_message_notification_count", schoolservice.getMessageNotification(user_id).size());
-				request.setAttribute("total_message_notification", prepareListOfMessage(schoolservice.getMessageNotification(user_id)));
-				/*request.setAttribute("all_notifications", prepareAllNotification(schoolservice.getAllNotification(school_id)));*/
+
+				List<Object[]> vehiclelist = schoolservice.getVehicleNotification(school_id) ;
+
+				request.setAttribute("notification_vehicle_count",vehiclelist.size());
+				request.setAttribute("notification_vehicle",prepareListOfVehicleDoc(vehiclelist) ) ;
+				
+				List<DriverMessage> msglist = schoolservice.getMessageNotification(school_id) ;
+
+
+				request.setAttribute("total_message_notification_count", msglist.size());
+				request.setAttribute("total_message_notification", prepareListOfMessage(msglist));
+				
 			
 			}
 			else if(session.getAttribute("userRole")=="Admin") 
 			{
 				
 				int user_id=(Integer) session.getAttribute("user_id");
-				request.setAttribute("total_message_notification_count", schoolservice.getMessageAdminNotification(user_id).size());
-				request.setAttribute("total_message_notification", prepareListOfMessage(schoolservice.getMessageAdminNotification(user_id)));
+				List<SchoolMessageBean> msgs =  prepareListOfMessage(schoolservice.getMessageAdminNotification(user_id)) ;
+				
+				request.setAttribute("total_message_notification_count", msgs.size() );
+				request.setAttribute("total_message_notification", msgs );
 				
 				request.setAttribute("notification", 0);
 			}else if(session.getAttribute("userRole")=="Parent") 
@@ -89,8 +99,8 @@ public class GetNotification extends HandlerInterceptorAdapter {
 			
 		}catch(Exception e)
 		{
-			//e.printStackTrace();
-			//System.out.println(e);
+			// e.printStackTrace();
+			System.out.println(e);
 		}
 		
 		
@@ -99,7 +109,7 @@ public class GetNotification extends HandlerInterceptorAdapter {
 	public boolean postHandle(HttpServletRequest request,
 			HttpServletResponse response, Object handler) throws Exception {
 		/*System.out.println("NotificationInterceptor: REQUEST Intercepted for URI: "
-				+ request.getRequestURI());*/
+				+ request.getRequestURI());
 		try{
 			HttpSession session = request.getSession();
 			if(session.getAttribute("new_school_id")!=null)
@@ -134,7 +144,7 @@ public class GetNotification extends HandlerInterceptorAdapter {
 			System.out.println(e);
 		}
 		
-		
+		*/
 		return true;
 	}
 	/**
@@ -190,9 +200,9 @@ public class GetNotification extends HandlerInterceptorAdapter {
 	 **/
 	private List<SchoolMessageBean> prepareListOfMessage(List<DriverMessage> messages) {
 
-		List<SchoolMessageBean> beans = null;
+		List<SchoolMessageBean> beans = new ArrayList<SchoolMessageBean>();
 		if (messages != null && !messages.isEmpty()) {
-			beans = new ArrayList<SchoolMessageBean>();
+
 			SchoolMessageBean bean = null;
 			for (DriverMessage vehicle : messages) {
 				bean = new SchoolMessageBean();
@@ -200,17 +210,21 @@ public class GetNotification extends HandlerInterceptorAdapter {
 				bean.setSender_id(vehicle.getSender_id());
 				bean.setTime(vehicle.getTime());
 				bean.setU_check(vehicle.getU_check());
-				if(vehicle.getU_check()=="driver" || vehicle.getU_check().equals(""))
-				{
-					DriverModel drivermodel = schoolservice.getDriverById(vehicle.getSender_id());
-					bean.setName(drivermodel.getDriver_fname());
-				}else
-				{
-					LoginModel loginmodel =new LoginModel();
-					loginmodel = schoolservice.getParentById(vehicle.getSender_id());
-					bean.setName(loginmodel.getUser_name());
-				}
-				
+			    try { 
+					if(vehicle.getU_check()=="driver" || vehicle.getU_check().equals(""))
+					{
+						DriverModel drivermodel = schoolservice.getDriverById(vehicle.getSender_id());
+						bean.setName(drivermodel.getDriver_fname());
+					}else
+					{
+						LoginModel loginmodel =new LoginModel();
+						loginmodel = schoolservice.getParentById(vehicle.getSender_id());
+						bean.setName(loginmodel.getUser_name());
+					}
+			    }catch(Exception e) { 
+			    	 System.out.println("error in get sender:" + e.getMessage());
+			        continue ;
+			    }
 				bean.setStatus(vehicle.getStatus());
 				beans.add(bean);
 			}

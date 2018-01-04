@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.codec.binary.Base64;
@@ -20,6 +21,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -111,30 +115,10 @@ import javax.servlet.http.HttpSession;
 @Controller
 public class FrontDahboardController {
 
-	private static final Date FEBRUARY = null;
-
-	private static final Date JANUARY = null;
-
-	private static final Date MARCH = null;
-
-	private static final Date APRIL = null;
-
-	private static final Date MAY = null;
-
-	private static final Date JUNE = null;
-
-	private static final Date JULY = null;
-
-	private static final Date AUGUST = null;
-
-	private static final Date SEPTEMBER = null;
-
-	private static final Date OCTOBER = null;
-
-	private static final Date NOVEMBER = null;
-
-	private static final Date DECEMBER = null;
-
+	@Autowired
+	private MessageSource messageSource;
+	
+	
 	@Autowired
 	private FrontDashboardService dashboardService;
 
@@ -147,18 +131,10 @@ public class FrontDahboardController {
 	@Autowired
 	private SchoolService schoolservice;
 
+    
 	@RequestMapping(value = "/index.html", method = RequestMethod.GET)
-	public ModelAndView welcome(
-			@ModelAttribute("command") FrontDashboardBean frontdashboardbean,
-			BindingResult result,ModelMap model) {
-		model.addAttribute("sliders", iterateAllSlider(schoolservice.getAllSlider()));
-		model.addAttribute("pages", iterateAllPage(schoolservice.getAllPage(0)));
-		model.addAttribute("pages_1", iterateAllPage(schoolservice.getAllPage(1)));
-		model.addAttribute("pages_2",schoolservice.getPageById(5));
-		model.addAttribute("pages_3", iterateAllPage(schoolservice.getAllPage(3)));
-		PageContentModel video=schoolservice.getAboutUs(3);
-		model.addAttribute("video", video);
-		return new ModelAndView("home/homepage",model);
+	public ModelAndView welcome( ModelMap model ,  HttpServletRequest request ) {
+		    return home(model , request) ;
 	}
 //	Iterate all pages
 	public List<PageBean> iterateAllPage(List<PageModel> page_model)
@@ -174,6 +150,9 @@ public class FrontDahboardController {
 				s_bean.setPage_name(p_model.getPage_name());
 				s_bean.setPage_title(p_model.getPage_title());
 				s_bean.setPage_desc(p_model.getPage_desc());
+				s_bean.setPage_name_ar(p_model.getPage_name_ar());
+				s_bean.setPage_title_ar(p_model.getPage_title_ar());
+				s_bean.setPage_desc_ar(p_model.getPage_desc_ar());
 				page_bean.add(s_bean);
 			}
 		}else
@@ -195,6 +174,7 @@ public class FrontDahboardController {
 					s_bean.setSlider_id(slider.getSlider_id());
 					s_bean.setSlider_type(slider.getSlider_type());
 					s_bean.setSlider_image(slider.getSlider_image());
+					s_bean.setSlider_image_ar(slider.getSlider_image_ar());
 					slider_bean.add(s_bean);
 				}
 			}else
@@ -207,105 +187,71 @@ public class FrontDahboardController {
 		}
 	
 		@RequestMapping(value = "/", method = RequestMethod.GET)
-	public ModelAndView home(	@ModelAttribute("command") FrontDashboardBean frontdashboardbean,
-			BindingResult result,ModelMap model , HttpServletRequest request) {
+	public ModelAndView home(	ModelMap model , HttpServletRequest request) {
+		System.out.println("slider size :" +  iterateAllSlider(schoolservice.getAllSlider()).size() );
 		model.addAttribute("sliders", iterateAllSlider(schoolservice.getAllSlider()));
 		model.addAttribute("pages", iterateAllPage(schoolservice.getAllPage(0)));
 		model.addAttribute("pages_1", iterateAllPage(schoolservice.getAllPage(1)));
 		model.addAttribute("pages_2",schoolservice.getPageById(5));
 		model.addAttribute("pages_3", iterateAllPage(schoolservice.getAllPage(3)));
 		PageContentModel video=schoolservice.getAboutUs(3);
-
 		
 		HttpSession session = request.getSession();
 		PageContentModel page_content=schoolservice.getAboutUs(5);
-		if(!page_content.getP_name().equals(""))
-		{
-			session.setAttribute("fb_link", page_content.getP_name());
-		}else
-		{
-			session.setAttribute("fb_link", "");
-		}
-		if(!page_content.getHeading1().equals(""))
-		{
-			session.setAttribute("tw_link", page_content.getHeading1());
-		}else
-		{
-			session.setAttribute("tw_link", "");
-		}
-		if(!page_content.getHeading2().equals(""))
-		{
-			session.setAttribute("li_link", page_content.getHeading2());
-		}else
-		{
-			session.setAttribute("li_link", "");
-		}
-//		Get Play store and I-Tunes store link
-		PageContentModel page_content1=schoolservice.getAboutUs(6);
-		if(!page_content1.getP_name().equals(""))
-		{
-			session.setAttribute("android_parent_app", page_content1.getP_name());
-		}else
-		{
-			session.setAttribute("android_parent_app", "");
-		}
-		if(!page_content1.getHeading1().equals(""))
-		{
-			request.setAttribute("ios_parent_app", page_content1.getHeading1());
-		}else
-		{
-			session.setAttribute("ios_parent_app", "");
-		}
-		if(!page_content1.getHeading2().equals(""))
-		{
-			session.setAttribute("android_driver_app", page_content1.getHeading2());
-		}else
-		{
-			request.setAttribute("android_driver_app", "");
-		}
-		if(!page_content1.getHeading3().equals(""))
-		{
-			session.setAttribute("android_school_app", page_content1.getHeading3());
-		}else
-		{
-			session.setAttribute("android_school_app", "");
-		}
-		if(!page_content1.getHeading4().equals(""))
-		{
-			session.setAttribute("ios_school_app", page_content1.getHeading4());
-		}else
-		{
-			session.setAttribute("ios_school_app", "");
-		}
+		session.setAttribute("fb_link", page_content.getP_name());
+		session.setAttribute("tw_link", page_content.getHeading1());
+		session.setAttribute("li_link", page_content.getHeading2());
 
+		PageContentModel page_content1=schoolservice.getAboutUs(6);
+		session.setAttribute("android_parent_app", page_content1.getP_name());
+		session.setAttribute("ios_parent_app", page_content1.getHeading1());
+		session.setAttribute("android_driver_app", page_content1.getHeading2());
+		session.setAttribute("android_school_app", page_content1.getHeading3());
+		session.setAttribute("ios_school_app", page_content1.getHeading4());
 		
 		model.addAttribute("video", video);
-		return new ModelAndView("home/homepage",model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/homepage",model);
 	}
 
+		
+	@RequestMapping(value = "/chnageLang.html", method = RequestMethod.GET)
+	public ModelAndView changeLang( @RequestParam("lang")String lang ,  ModelMap model ,  HttpSession session ) {
+				model.addAttribute("sliders", iterateAllSlider(schoolservice.getAllSlider()));
+				model.addAttribute("pages", iterateAllPage(schoolservice.getAllPage(0)));
+				model.addAttribute("pages_1", iterateAllPage(schoolservice.getAllPage(1)));
+				model.addAttribute("pages_2",schoolservice.getPageById(5));
+				model.addAttribute("pages_3", iterateAllPage(schoolservice.getAllPage(3)));
+				PageContentModel video=schoolservice.getAboutUs(3);
+				model.addAttribute("video", video);
+				
+				session.setAttribute(Assets.LANGUAGE, lang)  ;
+		return new ModelAndView("home/"+session.getAttribute("m_user_language")+"/homepage",model);
+	}
+
+		
 	@RequestMapping(value = "/about.html", method = RequestMethod.GET)
 	public ModelAndView aboutus(
 			@ModelAttribute("command") StudentBean studentbean,
-			BindingResult result, ModelMap model, HttpServletRequest request) {
+			BindingResult result, ModelMap model, HttpServletRequest request ,  HttpSession session) {
 		
-		PageContentModel page_content=schoolservice.getAboutUs(1);
+		PageContentModel page_content=schoolservice.getAboutUs(session.getAttribute(Assets.LANGUAGE).equals("ar")?2: 1);
 		model.addAttribute("content", page_content);
 		model.addAttribute("heading", "About Us");
-		return new ModelAndView("home/about", model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/about", model);
 	}
 
 	
 	@RequestMapping(value = "/how_it_works.html", method = RequestMethod.GET)
-	public ModelAndView how_it_works() {
-		return new ModelAndView("home/how_it_works");
+	public ModelAndView how_it_works(  HttpSession session) {
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/how_it_works");
 	}
 
 	@RequestMapping(value = "/features.html", method = RequestMethod.GET)
 	public ModelAndView feature(@ModelAttribute("command") StudentBean studentbean,
-			BindingResult result, ModelMap model, HttpServletRequest request) {
+			BindingResult result, ModelMap model, HttpServletRequest request,  HttpSession session) {
 		
 		model.addAttribute("features", iterateAllFeatures(schoolservice.getAllFeatures()));
-		return new ModelAndView("home/feature",model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/feature",model);
 	}
 	//Iterate all pages
 	public List<FeaturesBean> iterateAllFeatures(List<FeaturesModel> feature_model)
@@ -322,6 +268,9 @@ public class FrontDahboardController {
 				s_bean.setContent(p_model.getContent());
 				s_bean.setImage_path(p_model.getImage_path());
 				s_bean.setCategory_type(p_model.getCategory_type());
+				s_bean.setTitle_ar(p_model.getTitle_ar());
+				s_bean.setContent_ar(p_model.getContent_ar());
+				s_bean.setImage_path_ar(p_model.getImage_path_ar());
 				feature_bean.add(s_bean);
 			}
 		}
@@ -330,10 +279,10 @@ public class FrontDahboardController {
 
 	@RequestMapping(value = "/faq.html", method = RequestMethod.GET)
 	public ModelAndView faq(@ModelAttribute("command") StudentBean studentbean,
-			BindingResult result, ModelMap model, HttpServletRequest request) {
+			BindingResult result, ModelMap model, HttpServletRequest request,  HttpSession session) {
 		model.addAttribute("faq", iterateAllFaq(schoolservice.getAllFaq()));
 		model.addAttribute("heading", "FAQ");
-		return new ModelAndView("home/faq");
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/faq");
 	}
 //	Iterate all pages
 	public List<FaqBean> iterateAllFaq(List<FaqModel> faq_model)
@@ -349,24 +298,21 @@ public class FrontDahboardController {
 				s_bean.setCategory(p_model.getCategory());
 				s_bean.setQuestion(p_model.getQuestion());
 				s_bean.setAnswer(p_model.getAnswer());
+				s_bean.setQuestion_ar(p_model.getQuestion_ar());
+				s_bean.setAnswer_ar(p_model.getAnswer_ar());
 				feature_bean.add(s_bean);
 			}
 		}
 		return feature_bean;
 	}
 	
-	@RequestMapping(value = "/help.html", method = RequestMethod.GET)
-	public ModelAndView help() {
-		return new ModelAndView("home/help");
-	}
-
 	@RequestMapping(value = "/contact.html", method = RequestMethod.GET)
 	public ModelAndView contact(@ModelAttribute("contact") ContactBean contact,
-			BindingResult result,ModelMap model) {
+			BindingResult result,ModelMap model,  HttpSession session) {
 		model.addAttribute("categories", iterateAllCategory(schoolservice.getAllContactCategory()));
 		ContactContentModel page_content=schoolservice.getContactContent(1);
 		model.addAttribute("content", page_content);
-		return new ModelAndView("home/contact",model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/contact",model);
 	}
 	
 	//Method for iterate sliders
@@ -382,6 +328,7 @@ public class FrontDahboardController {
 						s_bean.setC_cat_id(category_contact.getC_cat_id());
 						s_bean.setCategory_en(category_contact.getCategory_en());
 						s_bean.setCategory_ar(category_contact.getCategory_ar());
+						
 						category_bean.add(s_bean);
 					}
 				}else
@@ -396,7 +343,7 @@ public class FrontDahboardController {
 	
 	@RequestMapping(value = "/contact.html", method = RequestMethod.POST)
 	public ModelAndView contact(@ModelAttribute("command") ContactDetailBean contact,
-			BindingResult result,ModelMap model) {
+			BindingResult result,ModelMap model,  HttpSession session) {
 		try{
 			ContactDetailModel c_model=new ContactDetailModel();
 			c_model.setContact_id(null);
@@ -415,12 +362,18 @@ public class FrontDahboardController {
 			msg +="<tr><td>Email:</td></td>"+contact.getEmail()+"</td></tr>";
 			msg +="<tr><td>Message:</td></td>"+contact.getMessage()+"</td></tr>";
 			msg +="</table>";
-			
+		
 			AdminSetupModel asm=new AdminSetupModel();
 			asm=schoolservice.adminSetup();
 			send_email.sendEmail(asm.getEmail_id(), msg, "Contact Enquiry",asm.getPassword());
 			//schoolservice.addContactDetails(c_model);
-			model.put("success", "Thanks for your message , we will contact you soon ");
+			
+	
+	        
+			
+			model.put("success", 
+					messageSource.	getMessage("contact",null,
+							new Locale((String) session.getAttribute(Assets.LANGUAGE)) ) );
 		}catch(Exception e)
 		{
 			e.printStackTrace();
@@ -428,24 +381,24 @@ public class FrontDahboardController {
 		model.addAttribute("categories", iterateAllCategory(schoolservice.getAllContactCategory()));
 		ContactContentModel page_content=schoolservice.getContactContent(1);
 		model.addAttribute("content", page_content);
-		return new ModelAndView("home/contact",model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/contact",model);
 	}
 	
 	@RequestMapping(value = "/logout.html", method = RequestMethod.GET)
 	public ModelAndView logout(HttpServletRequest request) {
 		HttpSession session = request.getSession();
 		session.invalidate();
-		return new ModelAndView("redirect:/index.html");
+		return new ModelAndView("redirect:/");
 	}
 
 	@RequestMapping(value = "/getStateByCountry.html", method = RequestMethod.POST)
 	public ModelAndView getStateByCountry(
-			@ModelAttribute("command") StateBean state, BindingResult result) {
+			@ModelAttribute("command") StateBean state, BindingResult result,  HttpSession session) {
 	//	System.out.println(state.getCountry_id());
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("states",
 				getStates(dashboardService.listStates(state.getCountry_id())));
-		return new ModelAndView("home/get_state", model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/get_state", model);
 	}
 
 	/**
@@ -453,11 +406,11 @@ public class FrontDahboardController {
 	 * **/
 	@RequestMapping(value = "/getCityByState.html", method = RequestMethod.POST)
 	public ModelAndView getCityByState(
-			@ModelAttribute("command") CityBean city, BindingResult result) {
+			@ModelAttribute("command") CityBean city, BindingResult result,  HttpSession session) {
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("cities",
 				getCities(dashboardService.listCity(city.getCountry_id())));
-		return new ModelAndView("home/get_city", model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/get_city", model);
 	}
 
 	/* Method for get state list by country */
@@ -500,49 +453,16 @@ public class FrontDahboardController {
 	}
 
 	/**
-	 * Method for get Parent by School id
-	 * **/
-	@RequestMapping(value = "/getParentBySchoolId.html", method = RequestMethod.POST)
-	public ModelAndView getParentBySchoolId(
-			@ModelAttribute("command") SchoolBean school, BindingResult result) {
-		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("parents",
-				getParents(schoolservice.getParentBySchool(school.getS_id())));
-		// model.put("parent",
-		// getParents(schoolservice.getParentById(school.getS_id())));
-		return new ModelAndView("home/get_parents", model);
-	}
-
-	/* Method for get city list by state */
-	private List<LoginBean> getParents(List<LoginModel> users) {
-
-		List<LoginBean> beans = null;
-		if (users != null && !users.isEmpty()) {
-			beans = new ArrayList<LoginBean>();
-			LoginBean bean = null;
-			for (LoginModel user : users) {
-				bean = new LoginBean();
-				bean.setUser_id(user.getUser_id());
-				bean.setUser_name(user.getUser_name());
-				beans.add(bean);
-			}
-		} else {
-		//	System.out.println("empty");
-		}
-		return beans;
-	}
-
-	/**
 	 * Method for get City by state id
 	 * **/
 	@RequestMapping(value = "/studentByRoute.html", method = RequestMethod.POST)
 	public ModelAndView studentByRoute(
 			@ModelAttribute("command") RouteLatLng routelatlng,
-			BindingResult result) {
+			BindingResult result,  HttpSession session) {
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("students", getStudent(dashboardService
 				.listRouteStudent(routelatlng.getRoute_id())));
-		return new ModelAndView("home/get_route_student", model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/get_route_student", model);
 	}
 
 	/* Method for get city list by state */
@@ -570,14 +490,14 @@ public class FrontDahboardController {
 	@RequestMapping(value = "/addressByStudent.html", method = RequestMethod.POST)
 	public ModelAndView addressByStudent(
 			@ModelAttribute("command") RouteLatLng routelatlng,
-			BindingResult result) {
+			BindingResult result,  HttpSession session) {
 		Map<String, Object> model = new HashMap<String, Object>();
 		RouteLatLngModel l = dashboardService.getStudentAddress(routelatlng
 				.getStudent_id());
 		model.put("address",
 				dashboardService.getStudentAddress(routelatlng.getStudent_id()));
 		//System.out.println(l.getAddress());
-		return new ModelAndView("home/get_student_address", model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/get_student_address", model);
 	}
 
 	/**
@@ -586,12 +506,12 @@ public class FrontDahboardController {
 	@RequestMapping(value = "/getStudentParent.html", method = RequestMethod.POST)
 	public ModelAndView getStudentParent(
 			@ModelAttribute("command") StudentBean studentbean,
-			BindingResult result) {
+			BindingResult result,  HttpSession session) {
 		Map<String, Object> model = new HashMap<String, Object>();
 		StudentModel stud = studentservice.getStudentById(studentbean
 				.getStudent_id());
 		model.put("students", stud);
-		return new ModelAndView("home/get_student_parent", model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/get_student_parent", model);
 	}
 
 	/**
@@ -599,12 +519,12 @@ public class FrontDahboardController {
 	 * **/
 	@RequestMapping(value = "/getParentById.html", method = RequestMethod.POST)
 	public ModelAndView getParentById(
-			@ModelAttribute("command") LoginBean user, BindingResult result) {
+			@ModelAttribute("command") LoginBean user, BindingResult result,  HttpSession session) {
 		Map<String, Object> model = new HashMap<String, Object>();
 		LoginModel parent = dashboardService.getParentById(user.getUser_id());
 		model.put("parent", parent);
 		model.put("student_id", user.getSchool_id());
-		return new ModelAndView("home/get_parent_by_id", model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/get_parent_by_id", model);
 	}
 
 	/**
@@ -612,13 +532,13 @@ public class FrontDahboardController {
 	 * **/
 	@RequestMapping(value = "/getAllParentByPId.html", method = RequestMethod.POST)
 	public ModelAndView getAllParentByPId(
-			@ModelAttribute("command") LoginBean user, BindingResult result) {
+			@ModelAttribute("command") LoginBean user, BindingResult result,  HttpSession session) {
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("allParent", getParentList(schoolservice
 				.getParentByPIdList(user.getP_status())));
 		model.put("relationship",getRelationshipList(schoolservice.listRelationship()));
 		model.put("student_details", studentservice.getStudentById(user.getSchool_id()));
-		return new ModelAndView("home/get_allparent_by_id", model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/get_allparent_by_id", model);
 	}
 	
 	/**
@@ -626,12 +546,12 @@ public class FrontDahboardController {
 	 * **/
 	@RequestMapping(value = "/getAllParentByPIdNew.html", method = RequestMethod.POST)
 	public ModelAndView getAllParentByPIdNew(
-			@ModelAttribute("command") LoginBean user, BindingResult result) {
+			@ModelAttribute("command") LoginBean user, BindingResult result,  HttpSession session) {
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("allParent", getParentList(schoolservice
 				.getParentByPIdList(user.getP_status())));
 		model.put("relationship",getRelationshipList(schoolservice.listRelationship()));
-		return new ModelAndView("home/get_allparent_by_id_new", model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/get_allparent_by_id_new", model);
 	}
 	/* Method for get Student list */
 	private List<relationshipBean> getRelationshipList(List<relationshipModel> relationships) {
@@ -747,13 +667,15 @@ public class FrontDahboardController {
 			JSONObject jsonArray = new JSONObject();
 			RouteModel r = new RouteModel();
 			r = schoolservice.getRouteById(latlng.getRoute_id());
-			jsonArray.put("slat", r.getSource_lat());
-			jsonArray.put("slng", r.getSource_lng());
-			jsonArray.put("dlat", r.getDestination_lat());
-			jsonArray.put("dlng", r.getDestination_lng());
-			jsonArray.put("source", r.getSource());
-			jsonArray.put("destination", r.getDestination());
-			jsonResult = jsonArray.toString();
+			if(r != null) {
+				jsonArray.put("slat", r.getSource_lat());
+				jsonArray.put("slng", r.getSource_lng());
+				jsonArray.put("dlat", r.getDestination_lat());
+				jsonArray.put("dlng", r.getDestination_lng());
+				jsonArray.put("source", r.getSource());
+				jsonArray.put("destination", r.getDestination());
+				jsonResult = jsonArray.toString(); 
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -762,39 +684,24 @@ public class FrontDahboardController {
 	}
 
 	/**
-	 * Method for get City by country id for student
-	 * **/
-	@RequestMapping(value = "/getStudentCity.html", method = RequestMethod.POST)
-	public ModelAndView getStudentCity(
-			@ModelAttribute("command") CityBean city, BindingResult result) {
-
-		Map<String, Object> model = new HashMap<String, Object>();
-		model.put("city_id", city.getCity_id());
-		model.put("cities",
-				getCities(dashboardService.listCity(city.getCountry_id())));
-		return new ModelAndView("home/get_student_city", model);
-	}
-
-	/**
 	 * Method for get driver by route
 	 * **/
 	@RequestMapping(value = "/getDriverByRoute.html", method = RequestMethod.POST)
 	public ModelAndView getDriverByRoute(
 			@ModelAttribute("command") RouteBean route, DriverBean driver,
-			BindingResult result) {
+			BindingResult result,  HttpSession session) {
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("route_id", driver.getRoute_id());
 		model.put("driver_id", driver.getDriver_id());
 		model.put(
 				"drivers",
 				getDrivers(dashboardService.driverByRoute(driver.getRoute_id())));
-		return new ModelAndView("home/get_driver_by_route", model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/get_driver_by_route", model);
 	}
 
 	/* Method for get city list by state */
 	@SuppressWarnings("unused")
 	private List<DriverBean> getDrivers(List<DriverModel> drivers) {
-
 		List<DriverBean> beans = null;
 		if (drivers != null && !drivers.isEmpty()) {
 			beans = new ArrayList<DriverBean>();
@@ -803,7 +710,6 @@ public class FrontDahboardController {
 				bean = new DriverBean();
 				bean.setD_email(driver.getD_email());
 				bean.setDriver_id(driver.getDriver_id());
-				;
 				bean.setDriver_fname(driver.getDriver_fname());
 				bean.setDriver_lname(driver.getDriver_lname());
 				beans.add(bean);
@@ -895,7 +801,7 @@ public class FrontDahboardController {
 	 * **/
 	@RequestMapping(value = "/getHolidayByMonth.html", method = RequestMethod.POST)
 	public ModelAndView getHolidayByMonth(
-			@ModelAttribute("command") HolidayBean holiday, BindingResult result) {
+			@ModelAttribute("command") HolidayBean holiday, BindingResult result,  HttpSession session) {
 		Map<String, Object> model = new HashMap<String, Object>();
 
 		model.put(
@@ -903,59 +809,20 @@ public class FrontDahboardController {
 				getHolidays(dashboardService.getHolidayByMonth(
 						holiday.getMonth(), holiday.getYear(),
 						holiday.getSchool_id())));
-		return new ModelAndView("home/get_holiday_ajax", model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/get_holiday_ajax", model);
 	}
 	
 	@RequestMapping(value = "/getHolidayByMonthNew.html", method = RequestMethod.POST)
 	public ModelAndView getHolidayByMonthNew(
-			@ModelAttribute("command") HolidayBean holiday, BindingResult result) {
+			@ModelAttribute("command") HolidayBean holiday, BindingResult result,  HttpSession session) {
 		Map<String, Object> model = new HashMap<String, Object>();
 		
-		String month="";
-		System.out.println("Month ="+holiday.getDay());
-		if(holiday.getDay().equals("January"))
-		{
-			month="01";
-			
-		}else if (holiday.getDay().equals("February")) {
-			month="02";
-			
-		}else if (holiday.getDay().equals("March")) {
-			month="03";
-			
-		}else if (holiday.getDay().equals("April")) {
-			month="04";
-		
-		}else if (holiday.getDay().equals("May")) {
-			month="05";
-			
-		}else if (holiday.getDay().equals("June")) {
-			month="06";
-		}else if (holiday.getDay().equals("July")) {
-			month="07";
-		
-		}else if (holiday.getDay().equals("August")) {
-			month="08";
-			
-		}else if (holiday.getDay().equals("September")) {
-			month="09";
-		
-		}else if (holiday.getDay().equals("October")) {
-			month="10";
-			
-		}else if (holiday.getDay().equals("November")) {
-			month="11";
-			
-		}else {
-			month="12";
-			
-		}
-		model.put(
-				"holidays",
-				getHolidays(dashboardService.getHolidayByMonth(
+		String month= ControllerHelper.getMonth(holiday.getDay()) ;
+				
+		model.put( "holidays",	getHolidays(dashboardService.getHolidayByMonth(
 						Integer.parseInt(month), holiday.getYear(),
 						holiday.getSchool_id())));
-		return new ModelAndView("home/get_holiday_ajax", model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/get_holiday_ajax", model);
 	}
 	
 	
@@ -1868,16 +1735,17 @@ public class FrontDahboardController {
 			HttpSession session = request.getSession();
 			int user_id = (Integer) session.getAttribute("user_id");
 			JSONObject json = new JSONObject();
-			json.put("message_count",
-					schoolservice.getMessageNotification(user_id).size());
-			DriverMessage dm = (DriverMessage) schoolservice.getMessageNotification(user_id)
-					.get(0);
-			json.put("msg", dm.getMsg());
-			LoginModel loginmodel = new LoginModel();
-			loginmodel = schoolservice.getParentById(dm.getSender_id());
-			json.put("user_id", dm.getSender_id());
-			json.put("role", dm.getU_check());
-			json.put("u_name", loginmodel.getUser_name());
+			json.put("message_count",	schoolservice.getMessageNotification(user_id).size());
+			List<DriverMessage> msg = schoolservice.getMessageNotification(user_id) ;
+			if(msg!= null && msg.size()>0 ) {
+					DriverMessage dm = (DriverMessage) msg.get(0);
+					json.put("msg", dm.getMsg());
+					LoginModel loginmodel = new LoginModel();
+					loginmodel = schoolservice.getParentById(dm.getSender_id());
+					json.put("user_id", dm.getSender_id());
+					json.put("role", dm.getU_check());
+					json.put("u_name", loginmodel.getUser_name());
+			}
 			jsonResult = json.toString();
 		} catch (Exception e) {
 			System.out.println(e);
@@ -2362,7 +2230,7 @@ public class FrontDahboardController {
 	@RequestMapping(value = "/page.html", method = RequestMethod.GET)
 	public ModelAndView page(
 			@ModelAttribute("command") StudentBean studentbean,
-			BindingResult result, ModelMap model, HttpServletRequest request) {
+			BindingResult result, ModelMap model, HttpServletRequest request,  HttpSession session) {
 		
 		String q=request.getParameter("q");
 		byte[] decodedBytes = Base64.decodeBase64(""+q+"");
@@ -2370,7 +2238,7 @@ public class FrontDahboardController {
 		PageModel page_model= schoolservice.getPageById(page_id);
 		model.put("content", page_model);
 		model.addAttribute("heading", page_model.getPage_name());
-		return new ModelAndView("home/page", model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/page", model);
 	}
 	
 	
@@ -2381,7 +2249,7 @@ public class FrontDahboardController {
 	@ResponseBody
 	public String subscribe(
 			@ModelAttribute("command") SubscriberBean s_bean,
-			BindingResult result, HttpServletRequest request) {
+			BindingResult result, HttpServletRequest request ) {
 		String jsonResult = "";
 		try {
 			HttpSession session = request.getSession();
@@ -2595,10 +2463,10 @@ public class FrontDahboardController {
 	 * **/
 	@RequestMapping(value = "/getNewStudentTableStatus.html", method = RequestMethod.POST)
 	public ModelAndView getNewStudentTableStatus(
-			@ModelAttribute("command") RouteBean route_bean, BindingResult result) {
+			@ModelAttribute("command") RouteBean route_bean, BindingResult result,  HttpSession session) {
 		Map<String, Object> model = new HashMap<String, Object>();
 		model.put("all_students", getStudentList(schoolservice.getStudentsByRouteId(route_bean.getRoute_id())));
-		return new ModelAndView("home/get_student_blink_table", model);
+		return new ModelAndView("home/"+session.getAttribute(Assets.LANGUAGE)+"/get_student_blink_table", model);
 	}
 	
 	
