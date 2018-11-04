@@ -128,12 +128,12 @@
           rules: {
         	 /*  first_name: "required",
         	  last_name: "required",
-        	  user_email:{
-						required: true,
-						email: true
-					},
+        	 
 			  contact_number:"required" */
-        	  mobile_number: "required",
+			  user_email:{
+					required: true,
+					email: true
+				}, mobile_number: "required",
 			  
 	      },
           messages: {

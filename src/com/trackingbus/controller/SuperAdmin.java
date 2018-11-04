@@ -195,11 +195,7 @@ public class SuperAdmin {
 					imageOutFile.write(imageByteArray);
 					imageOutFile.close();
 					
-					//TO DO : delete after update app 
-					String directory2 = request.getServletContext().getRealPath(	Assets.SCHOOL_UPLOAD_PATH_SYS_to_del + imageName );
-					FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
-					imageOutFile2.write(imageByteArray);
-					imageOutFile2.close();
+					
 					
 				} else {
 					imageName = "";
@@ -406,11 +402,7 @@ public class SuperAdmin {
 					imageOutFile.write(imageByteArray);
 					imageOutFile.close();
 					
-					//TO DO : delete after update app 
-					String directory2 = 	request.getServletContext().getRealPath( Assets.STUDENT_UPLOAD_PATH_to_del + imageName ) ;
-					FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
-					imageOutFile2.write(imageByteArray);
-					imageOutFile2.close();
+					
 					
 				} else {
 					imageName = "";
@@ -671,11 +663,7 @@ public class SuperAdmin {
 				imageOutFile.write(imageByteArray);
 				imageOutFile.close();
 				
-				//TO DO : delete after update app 
-				String directory2 = request.getServletContext().getRealPath(	Assets.STUDENT_UPLOAD_PATH_to_del + imageName );
-				FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
-				imageOutFile2.write(imageByteArray);
-				imageOutFile2.close();
+				
 				
 			} else {
 				imageName = "";
@@ -1335,11 +1323,7 @@ public class SuperAdmin {
 				imageOutFile.write(imageByteArray);
 				imageOutFile.close();
 				
-				//TO DO : delete after update app 
-				String directory2 = request.getServletContext().getRealPath(	Assets.DRIVER_UPLOAD_PATH_to_del + imageName ) ;
-				FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
-				imageOutFile2.write(imageByteArray);
-				imageOutFile2.close();
+				
 				
 			} else {
 				imageName = "";
@@ -1635,11 +1619,7 @@ public class SuperAdmin {
 					imageOutFile.write(imageByteArray);
 					imageOutFile.close();
 					
-					//TO DO : delete after update app 
-					String directory2 = 	request.getServletContext().getRealPath( Assets.DRIVER_UPLOAD_PATH_to_del + imageName ) ;
-					FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
-					imageOutFile2.write(imageByteArray);
-					imageOutFile2.close();
+				
 				} else {
 					imageName = "";
 				}
@@ -2474,11 +2454,7 @@ public class SuperAdmin {
 				imageOutFile.write(imageByteArray);
 				imageOutFile.close();
 				
-				//TO DO : delete after update app 
-				String directory2 = request.getServletContext().getRealPath(	Assets.SCHOOL_UPLOAD_PATH_SYS_to_del + imageName ) ;
-				FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
-				imageOutFile2.write(imageByteArray);
-				imageOutFile2.close();
+				
 			} else {
 				imageName = "";
 
@@ -3367,8 +3343,8 @@ public class SuperAdmin {
 			/*
 			 * if(check==null) {
 			 */
-			LoginModel found = loginservice.checkMobile(parent
-					.getContact_number());
+			LoginModel found = null ;
+
 			if (found == null) {
 				LoginModel parentModel = new LoginModel();
 				parentModel.setUser_email(parent.getUser_email());

@@ -299,11 +299,6 @@ public class SchoolAdminController {
 						imageOutFile.write(imageByteArray);
 						imageOutFile.close();
 
-						//TO DO : delete after update app 
-						String directory2 = request.getServletContext().getRealPath(	Assets.STUDENT_UPLOAD_PATH_to_del + imageName );
-						FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
-						imageOutFile2.write(imageByteArray);
-						imageOutFile2.close();
 						
 					} else {
 						imageName = "";
@@ -1032,11 +1027,7 @@ public class SchoolAdminController {
 				imageOutFile.write(imageByteArray);
 				imageOutFile.close();
 				
-				//TO DO : delete after update app 
-				String directory2 = 	request.getServletContext().getRealPath( Assets.STUDENT_UPLOAD_PATH_to_del + imageName ) ;
-				FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
-				imageOutFile2.write(imageByteArray);
-				imageOutFile2.close();
+				
 				
 				
 			} else {
@@ -1902,11 +1893,7 @@ public class SchoolAdminController {
 					imageOutFile.write(imageByteArray);
 					imageOutFile.close();
 					
-					//TO DO : delete after update app 
-					String directory2 = request.getServletContext().getRealPath(	Assets.DRIVER_UPLOAD_PATH_to_del + imageName );
-					FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
-					imageOutFile2.write(imageByteArray);
-					imageOutFile2.close();
+					
 					
 				} else {
 					imageName = "";
@@ -2247,11 +2234,7 @@ public class SchoolAdminController {
 				imageOutFile.write(imageByteArray);
 				imageOutFile.close();
 				
-				//TO DO : delete after update app 
-				String directory2 = request.getServletContext().getRealPath(	Assets.DRIVER_UPLOAD_PATH_to_del + imageName ) ;
-				FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
-				imageOutFile2.write(imageByteArray);
-				imageOutFile2.close();
+				
 				
 			} else {
 				imageName = "";
@@ -3012,6 +2995,7 @@ public class SchoolAdminController {
 		return new ModelAndView("school/add_new_parent");
 		}catch(Exception e)
 		{
+			
 			return new ModelAndView("redirect:manageParents");
 		}
 	}
@@ -3058,15 +3042,14 @@ public class SchoolAdminController {
 			 * if(check==null) {
 			 */
 			// LoginModel found = loginservice.login(parent.getUser_email(),"");
-			LoginModel found = loginservice.checkMobile(parent
-					.getContact_number());
+			LoginModel found = null ;
 			if (found == null) {
 				LoginModel parentModel = new LoginModel();
 				parentModel.setUser_email(parent.getUser_email());
 				parentModel.setUser_name(username);
 				parentModel.setUser_pass(password);
 				parentModel.setSchool_id(parent.getSchool_id());
-				parentModel.setContact_number(parent.getContact_number());
+				parentModel.setContact_number(parent.getContact_number() );
 				parentModel.setUser_role(3);
 				parentModel.setP_status(p_status_new);
 				parentModel.setFirst_name(parent.getFirst_name());

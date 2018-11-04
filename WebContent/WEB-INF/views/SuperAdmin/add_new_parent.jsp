@@ -134,7 +134,10 @@
 		$("#student").validate({
 		    rules: {
 		    	  mobile_number: "required",
-				  contact_number:"required"
+		    	  user_email:{
+						required: true,
+						email: true
+					}
 		      },
 	          messages: {
 	        	  first_name: "Please enter first name",
@@ -142,8 +145,7 @@
 	        	  user_email:{
 							required: "Please enter email address",
 							email: "Please enter valid email address"
-						},
-			   contact_number:"Please enter contact number"
+						}
 						
 			  },
 	          submitHandler: function(form) {

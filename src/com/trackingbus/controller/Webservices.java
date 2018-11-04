@@ -1246,18 +1246,30 @@ public class Webservices<K> {
 					List<LoginModel> parent_details=schoolservice.getParentByPIdList(studentModel.getP_status_id());
 					HashMap<String, String> pt = new HashMap<String, String>();
 					List<HashMap<String, String>> parents = new ArrayList<HashMap<String, String>>();
+					
+					System.out.println("checking the relationship data : ");
+					System.out.println("studentModel.getP_1 : " + studentModel.getP_1());
+					System.out.println("studentModel.getR_1 : "+ studentModel.getR_1());
+					
+					System.out.println("studentModel.getP_2 : " + studentModel.getP_2());
+					System.out.println("studentModel.getR_2 : "+ studentModel.getR_2());
+					
+					System.out.println("studentModel.getP_3 : " + studentModel.getP_3());
+					System.out.println("studentModel.getR_3 : "+ studentModel.getR_3());
+					
+					
 					for (LoginModel parent_detail : parent_details) {
 						if(parent_detail!=null)
 						{
 						    JSONObject parentObject=new JSONObject();
 						    System.out.println(parent_detail.getUser_id()+"=="+studentModel.getP_1());
-							if(Integer.valueOf(parent_detail.getUser_id())==Integer.valueOf(studentModel.getP_1()))
+							if(parent_detail.getUser_id().intValue()==studentModel.getP_1().intValue())
 							{
 								parentObject.put("relationship", studentModel.getR_1());
-							}else if(Integer.valueOf(parent_detail.getUser_id())==Integer.valueOf(studentModel.getP_2()))
+							}else if(parent_detail.getUser_id().intValue() == studentModel.getP_2().intValue() )
 							{
 								parentObject.put("relationship", studentModel.getR_2());
-							}else if(Integer.valueOf(parent_detail.getUser_id())==Integer.valueOf(studentModel.getP_2()))
+							}else if(parent_detail.getUser_id().intValue() == studentModel.getP_2().intValue() )
 							{
 								System.out.println("Here2");
 								parentObject.put("relationship", studentModel.getR_3());
@@ -1265,6 +1277,9 @@ public class Webservices<K> {
 								System.out.println("Here3");
 								parentObject.put("relationship", "");
 							}
+							System.out.println("relationship has set to: "+ parentObject.get("relationship") );
+
+							
 						    parentObject.put("parent_id", parent_detail.getUser_id());
 							parentObject.put("parent_fname", parent_detail.getFirst_name());
 							parentObject.put("parent_family_name", parent_detail.getFamily_name());
@@ -1932,7 +1947,7 @@ public class Webservices<K> {
 	 * Webservice for get real time location of student as well as stop lat lng
 	 * by route id and student id
 	 **/
-	@RequestMapping(value = "webservices/notification", method = RequestMethod.GET)
+	@RequestMapping(value = "webservices/notification", method = RequestMethod.GET ,produces="application/json;charset=UTF-8")
 	@ResponseBody
 	public String notification(
 			@ModelAttribute("command") NotificationBean noti_bean) {
@@ -2153,20 +2168,19 @@ public class Webservices<K> {
 						}
 						
 						NotificationModel noti = new NotificationModel();
-						DateFormat dateFormat2 = new SimpleDateFormat(
-								"yyyy-MM-dd hh:mm:ss");
+						DateFormat dateFormat2 = new SimpleDateFormat( "yyyy-MM-dd hh:mm:ss");
 						Date date4 = new Date();
 						String date5 = dateFormat2.format(date2);
 						StudentModel studentModel = studentservice.getStudentById(student_id);
-						String desc = msg;
 						noti.setDate(date3);
-						noti.setNoti_desc(desc);
+						noti.setNoti_desc(msg);
 						noti.setRoute_id(studentModel.getS_route_id());
 						noti.setStudent_id(student_id);
 						noti.setNoti_id(null);
 						noti.setNoti_type(noti_type_str);
 						noti.setParent_id(parent.getUser_id());
 						int noti_id = webserviceService.insertNotification(noti);
+						System.out.println("notification id :" + noti_id);
 						
 					}
 				}else
@@ -2193,6 +2207,7 @@ public class Webservices<K> {
 			e.printStackTrace();
 		}
 		jsonResult = jsonObject.toString();
+		System.out.println(jsonResult);
 		return jsonResult;
 	}
 

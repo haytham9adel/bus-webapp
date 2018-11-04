@@ -74,11 +74,11 @@
         	  family_name: "required",
         	  middle_name: "required",
         	  mobile_number: "required",
-        	  last_name: "required",
+        	  last_name: "required",*/
         	  user_email:{
 						required: true,
 						email: true
-					}, */
+					}, 
 			  mobile_number: "required",
 			  
 	      },

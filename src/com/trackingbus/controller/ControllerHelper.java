@@ -233,11 +233,7 @@ public class ControllerHelper {
 		   imageOutFile.write(imageByteArray);
 		   imageOutFile.close();
 		   
-			//TO DO : delete after update app 
-			String directory2 = 	Assets.SCHOOL_UPLOAD_PATH_SYS_to_del + imageName ;
-			FileOutputStream imageOutFile2 = new FileOutputStream(directory2);
-			imageOutFile2.write(imageByteArray);
-			imageOutFile2.close();
+			
 			
 		}catch(Exception exo) {
 			System.err.println(exo);

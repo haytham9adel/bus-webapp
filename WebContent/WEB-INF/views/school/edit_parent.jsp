@@ -107,12 +107,13 @@
 		$("#student").validate({
           rules: {
         	  /* first_name: "required",
-        	  last_name: "required",
+        	  last_name: "required", ,
+			  contact_number:"required" */
+        	  
         	  user_email:{
 						required: true,
 						email: true
-					},
-			  contact_number:"required" */
+					}
 	      },
           messages: {
         	  first_name: "Please enter first name",
